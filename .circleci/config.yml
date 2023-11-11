@@ -1,0 +1,235 @@
+version: 2.1
+
+
+jobs:
+  deploy-react:
+    
+    docker:
+        - image: circleci/node:16
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys:
+         fingerprints: 
+          - "94:f3:79:6d:db:f2:27:8e:98:e2:7f:30:bb:da:5c:03"
+      - checkout
+      # install dependencies
+      - setup_remote_docker:
+          version: 20.10.12
+          docker_layer_caching: true
+      - run:
+          name: Run npm 
+          command: |
+            CI=false cd frontend && npm install && npm run test
+
+      - run: CI=false sudo apt update
+      - run: CI=false sudo apt-get install rsync
+
+      - run:
+          name: Update known hosts
+          command: ssh-keyscan -H 185.160.67.60 >> ~/.ssh/known_hosts && cat ~/.ssh/known_hosts
+      - run:
+          name: build file
+          command: |
+            cd frontend && CI=false npm run build
+     
+      - run:
+          name: ssh login  
+          command: |
+            rsync -va -e 'ssh -p 7822 -o StrictHostKeyChecking=no'  --delete   frontend/build/ frontend/.htaccess skillz@185.160.67.60:tibilon/frontend
+      # - run:
+      #     name: ssh and run migration on live server  
+      #     command: |
+      #       ssh bartumen@192.254.235.94 && cd devapi.bartumenergy.com &&  php artisan migrate && ls && exit
+      
+  deploy-react-production:
+    
+    docker:
+        - image: circleci/node:16
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys:
+         fingerprints: 
+          - "94:f3:79:6d:db:f2:27:8e:98:e2:7f:30:bb:da:5c:03"
+      - checkout
+      # install dependencies
+      - setup_remote_docker:
+          version: 20.10.12
+          docker_layer_caching: true
+      - run:
+          name: Run npm 
+          command: |
+            CI=false cd frontend && npm install && npm run test
+
+      - run: CI=false sudo apt update
+      - run: CI=false sudo apt-get install rsync
+      - run:
+          name: rename .env.example file to .env 
+          command: |
+            mv frontend/.env.example frontend/.env
+      
+      - run:
+          name: find and replace in document
+          command: |
+             sed -i -e 's#REACT_APP_API_URL=https://api.tibilon.skillzserver.com/api#REACT_APP_API_URL=https://api.tibilon.skillzserver.com/api#g' frontend/.env 
+
+
+      - run:
+          name: Update known hosts
+          command: ssh-keyscan -H 162.213.255.3 >> ~/.ssh/known_hosts && cat ~/.ssh/known_hosts
+      - run:
+          name: build file
+          command: |
+            cd frontend && CI=false npm run build
+     
+      - run:
+          name: ssh login  
+          command: |
+            rsync -va -e 'ssh -p 21098 -o StrictHostKeyChecking=no'  --delete   frontend/build/ frontend/.htaccess tibicons23@162.213.255.3:tibilon/frontend
+      # - run:
+      #     name: ssh and run migration on live server  
+      #     command: |
+      #       ssh bartumen@192.254.235.94 && cd devapi.bartumenergy.com &&  php artisan migrate && ls && exit
+      
+  deploy-laravel:
+    docker:
+        - image: cimg/php:8.1
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys:
+          fingerprints: 
+          - "94:f3:79:6d:db:f2:27:8e:98:e2:7f:30:bb:da:5c:03"
+      - checkout
+      # install dependencies
+      - setup_remote_docker:
+          version: 20.10.12
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: cd backend/laravel && CI=false  composer update && CI=false  composer install &&  CI=false php artisan key:generate
+
+      - run: sudo apt update
+      - run: sudo apt-get install rsync
+
+      # - run:
+      #     name: Update known hosts
+      #     command:  CI=false ssh-keyscan -H 185.160.67.60 >> ~/.ssh/known_hosts && cat ~/.ssh/known_hosts
+      - run:
+          name: find and replace in document
+          command: |
+            sed -i -e 's:/public/index.php:/index.php:g' backend/laravel/public/index.php && sed -i -e 's:/../vendor/autoload.php:/vendor/autoload.php:g' backend/laravel/public/index.php && sed -i -e 's:DB_DATABASE=forge:DB_DATABASE=skillz_tibilon:g' backend/laravel/.env.example && sed -i -e 's:DB_USERNAME=forge:DB_USERNAME=skillz_tibilon:g' backend/laravel/.env.example  && sed -i -e 's:/../bootstrap/app.php:/bootstrap/app.php:g' backend/laravel/public/index.php && sed -i -e 's:DB_PASSWORD=forge:DB_PASSWORD="Ubuxa##99":g' backend/laravel/.env.example 
+
+      - run:
+          name: rename .env.example file to .env 
+          command: |
+            mv backend/laravel/.env.example backend/laravel/.env
+
+      - run:
+          name: ssh login  
+          command: |
+            cd backend/laravel && rsync -va -e 'ssh -p 7822 -o StrictHostKeyChecking=no' --ignore-existing --exclude='public/' --include='public/' --delete-excluded app database phpunit.xml storage vendor artisan .env tests bootstrap composer.json resources composer.lock routes config package.json skillz@185.160.67.60:tibilon/laravel
+            
+      # - run:
+      #     name: ssh and run migration on live server  
+      #     command: |
+      #       ssh -p 7822 -o StrictHostKeyChecking=no  skillz@185.160.67.60 && cd tibilon/laravel  &&  composer install && exit
+  
+  deploy-laravel-production:
+    docker:
+        - image: circleci/node:16
+    
+
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys:
+          fingerprints: 
+          - "94:f3:79:6d:db:f2:27:8e:98:e2:7f:30:bb:da:5c:03"
+      - checkout
+      # install dependencies
+      - run:
+          name: Install PHP 8.2 CLI and other dependencies
+          command: |
+            sudo apt-get update && sudo apt-get install -y software-properties-common
+            sudo add-apt-repository ppa:ondrej/php
+            sudo apt-get update && sudo apt-get install -y php8.2-cli zip unzip rsync openssh-client
+            
+      - run:
+          name: Install zip and unzip
+          command: sudo apt-get update && sudo apt-get install  zip unzip rsync openssh-client
+
+      - run:
+          name: Install Composer
+          command: |
+            mkdir -p ~/.composer/bin
+            curl -sS https://getcomposer.org/installer | php -- --install-dir=/home/circleci/.composer/bin --filename=composer
+            export PATH="/home/circleci/.composer/bin:$PATH"
+      # - run:
+      #     name: Install Composer
+      #     command: |
+      #       sudo curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+      
+      - run:
+          name: Update SSH client configuration
+          command: |
+            echo "HostKeyAlgorithms +ssh-rsa,ssh-dss" >> ~/.ssh/config
+      - setup_remote_docker:
+          version: 20.10.12
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: cd backend/laravel && CI=false  /home/circleci/.composer/bin/composer update && CI=false  /home/circleci/.composer/bin/composer install &&  CI=false php artisan key:generate
+
+      #- run: sudo apt update
+      #- run: sudo apt-get install -y rsync
+     
+      #     command:  CI=false ssh-keyscan -H 185.160.67.60 >> ~/.ssh/known_hosts && cat ~/.ssh/known_hosts
+      - run:
+          name: find and replace in document
+          command: |
+            sed -i -e 's:/public/index.php:/index.php:g' backend/laravel/public/index.php && sed -i -e 's:/../vendor/autoload.php:/vendor/autoload.php:g' backend/laravel/public/index.php && sed -i -e 's:DB_DATABASE=forge:DB_DATABASE=tibicons23_tibilon_admin:g' backend/laravel/.env.example && sed -i -e 's:DB_USERNAME=forge:DB_USERNAME=tibicons23_tibilon:g' backend/laravel/.env.example  && sed -i -e 's:/../bootstrap/app.php:/bootstrap/app.php:g' backend/laravel/public/index.php && sed -i -e 's:DB_PASSWORD=forge:DB_PASSWORD="Ubuxa##99":g' backend/laravel/.env.example 
+
+      - run:
+          name: rename .env.example file to .env 
+          command: |
+            mv backend/laravel/.env.example backend/laravel/.env
+      - run:
+          name: Update known hosts
+          command: |
+            mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
+            ssh-keyscan -p 21098 -H -t rsa 162.213.255.3 >> ~/.ssh/known_hosts 
+      - run:
+          name: ssh login  
+          command: |
+            cd backend/laravel && rsync -v -va -e 'ssh -p 21098 -o StrictHostKeyChecking=no' --delete app database phpunit.xml storage vendor artisan .env tests bootstrap composer.json resources composer.lock routes config package.json tibicons23@162.213.255.3:tibilon/laravel
+          #timeout: 20m
+            
+      # - run:
+      #     name: ssh and run migration on live server  
+      #     command: |
+      #       ssh -p 7822 -o StrictHostKeyChecking=no  skillz@185.160.67.60 && cd tibilon/laravel  &&  composer install && exit
+
+workflows:
+  version: 2
+  tibilion_deploy:
+    jobs:
+      - deploy-laravel: # Use the pre-configured job, deploy-via-git
+          filters:
+            branches:
+              only: laravel
+      - deploy-react: # Use the pre-configured job, deploy-via-git
+          filters:
+            branches:
+              only: react
+      - deploy-laravel-production:
+
+          filters:
+            branches:
+              only: production
+      - deploy-react-production:
+          filters:
+            branches:
+              only: production 
+      # - deploy-nest: # Use the pre-configured job, deploy-via-git
+      #     filters:
+      #       branches:
+      #         only: nest
