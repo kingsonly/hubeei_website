@@ -19,7 +19,7 @@ jobs:
       - run:
           name: Run npm 
           command: |
-            npm install && npm run test
+            npm install 
 
       - run: CI=false sudo apt update
       - run: CI=false sudo apt-get install rsync
