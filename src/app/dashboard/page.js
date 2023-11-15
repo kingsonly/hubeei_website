@@ -20,6 +20,8 @@ export default function Page() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [openCategory, setOpenCategory] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState();
 
   useEffect(() => {
     bootstrap();
@@ -29,8 +31,9 @@ export default function Page() {
     // there is no selected hub in the local storage , then get a list of all the hubs
     let getHub = localStorage.getItem("hub");
     if (getHub == undefined) {
+      let userId = localStorage.getItem("userData");
       let response = await axios.get(
-        "https://api.hubeei.skillzserver.com/api/usershub/4"
+        `https://api.hubeei.skillzserver.com/api/usershub/${userId}`
       );
 
       if (response.data.status == "success") {
@@ -52,9 +55,6 @@ export default function Page() {
   const bootstrap = () => {
     init();
   };
-
-  const [categories, setCategories] = useState([]);
-  const [categoryId, setCategoryId] = useState();
 
   const fabStyle = {
     position: "fixed",
