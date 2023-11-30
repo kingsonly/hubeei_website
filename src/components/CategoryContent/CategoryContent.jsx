@@ -18,7 +18,7 @@ export default function CategoryContent({ categoryId }) {
   const [content, setContent] = useState("");
   const [type, setType] = useState("");
   const [withEngagment, setWithEngagment] = useState("no");
-  const [spotlight, setSpotlight] = useState("no");
+  const [spotlight, setSpotlight] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [thumbnail, setThumbnail] = useState("");
@@ -37,6 +37,7 @@ export default function CategoryContent({ categoryId }) {
       formData.append("content_type", type);
       formData.append("content_description", description);
       formData.append("thumbnail", thumbnail);
+      formData.append("sportlight", spotlight);
       formData.append("hub_category_id", categoryId);
 
       await axios
@@ -68,7 +69,7 @@ export default function CategoryContent({ categoryId }) {
   };
 
   const setSpotlightState = (e) => {
-    setSpotlight(e.target.value);
+    setSpotlight(e);
   };
 
   const handlePrevious = () => {
@@ -163,17 +164,17 @@ export default function CategoryContent({ categoryId }) {
                     row
                     aria-labelledby="demo-row-radio-buttons-group-label"
                     name="row-radio-buttons-group"
-                    defaultValue="no"
+                    defaultValue="0"
                     onChange={(e) => setSpotlightState(e.target.value)}
                   >
                     <FormControlLabel
-                      value="no"
+                      value="0"
                       control={<Radio />}
                       label="No"
                     />
 
                     <FormControlLabel
-                      value="yes"
+                      value="1"
                       control={<Radio />}
                       label="Yes"
                     />

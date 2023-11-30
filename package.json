@@ -23,7 +23,9 @@
     "react-beautiful-dnd": "^13.1.1",
     "react-card-flip": "^1.2.2",
     "react-dom": "^18",
-    "react-multistep": "^5.5.9"
+    "react-multi-carousel": "^2.8.4",
+    "react-multistep": "^5.5.9",
+    "react-player": "^2.13.0"
   },
   "devDependencies": {
     "autoprefixer": "^10",
