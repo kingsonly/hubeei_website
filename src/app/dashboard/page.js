@@ -27,6 +27,8 @@ import { CircularProgress, Typography } from "@mui/material";
 import { useRouter } from "next/navigation";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import Tooltip from "@mui/material/Tooltip";
+import UploadButton from "@/components/InputComponent/UploadButton";
+import Engagement from "@/components/Engagement/Engagement";
 export default function Page() {
   const router = useRouter();
   const [selectedHub, setSelectedHub] = useState(false);
@@ -50,6 +52,11 @@ export default function Page() {
   const [hubUrl, setHubUrl] = useState("");
   const [hubDescription, setHubDescription] = useState("");
   const [createCategoryLoader, setCreateCategoryLoader] = useState(false);
+  const [settings, setSettings] = useState({});
+  const [logoModal, setLogoModal] = useState(false);
+  const [logoModalLoader, setLogoModalLoader] = useState(false);
+  const [logoValue, setLogoValue] = useState();
+  const [engagmentData, setEngagmentData] = useState();
 
   useEffect(() => {
     bootstrap();
@@ -72,6 +79,9 @@ export default function Page() {
           setHubs(response.data.data);
 
           localStorage.setItem("hubList", JSON.stringify(response.data.data));
+          let id = localStorage.getItem("hub");
+          let hubDetails = JSON.parse(localStorage.getItem("hubDetails"));
+          action(id, hubDetails);
         } else {
           //handle the error here
         }
@@ -87,6 +97,30 @@ export default function Page() {
       getDashboardStats();
       // fetch all hub details and display on the dashboard
     }
+  };
+
+  const updateLogo = async () => {
+    setLogoModalLoader(true);
+    let data = new FormData();
+    let hubId = localStorage.getItem("hub");
+
+    data.append("hub_id", hubId);
+    data.append("type", "logo");
+    data.append("value", logoValue);
+    let response = await axios.post(
+      "https://api.hubeei.skillzserver.com/api/dashboard/hubs/settings/update",
+      data
+    );
+
+    if (response.data.status == "success") {
+      setLogoModalLoader(false);
+      setLogoModal(false);
+    } else {
+      setLogoModalLoader(false);
+    }
+  };
+  const updateLogoModal = () => {
+    setLogoModal(true);
   };
 
   const getDashboardStats = async () => {
@@ -105,6 +139,10 @@ export default function Page() {
   const bootstrap = async () => {
     isLoggedIn();
     init();
+    let localSettings = JSON.parse(localStorage.getItem("hubDetails"));
+    localSettings.settings["title"] = localSettings.name;
+    localSettings.settings["description"] = localSettings.description;
+    setSettings(localSettings.settings);
   };
 
   const isLoggedIn = () => {
@@ -216,7 +254,49 @@ export default function Page() {
 
   const action = async (id, details) => {
     setLoader(true);
-    localStorage.setItem("hubDetails", JSON.stringify(details));
+
+    if (details) {
+      let newHubDetails = {};
+      if (details.settings instanceof Array) {
+        await details.settings.map((item) => {
+          if (item.name == "logo") {
+            newHubDetails["logo"] = item;
+          }
+          if (item.name == "menu") {
+            newHubDetails["menu"] = item;
+          }
+          if (item.name == "sportlight") {
+            newHubDetails["sportlight"] = item;
+          }
+          if (item.name == "search") {
+            newHubDetails["search"] = item;
+          }
+          if (item.name == "content") {
+            newHubDetails["content"] = item;
+          }
+          if (item.name == "category") {
+            newHubDetails["category"] = item;
+          }
+          if (item.name == "category") {
+            newHubDetails["category"] = item;
+          }
+          if (item.name == "backgound") {
+            newHubDetails["backgound"] = item;
+          }
+          if (item.name == "backgound") {
+            newHubDetails["backgound"] = item;
+          }
+          if (item.name == "registration") {
+            newHubDetails["registration"] = item;
+          }
+          console.log(newHubDetails);
+        });
+        details.settings = newHubDetails;
+
+        localStorage.setItem("hubDetails", JSON.stringify(details));
+      }
+    }
+
     // after showing loader fetch every hub content
     let response = await axios.get(
       `https://api.hubeei.skillzserver.com/api/category-content/${id}`
@@ -240,8 +320,8 @@ export default function Page() {
       case "pdf":
         return (
           <iframe
-            // src={`https://api.hubeei.skillzserver.com/public${content}`}
-            src={"https://research.google.com/pubs/archive/44678.pdf"}
+            src={`https://api.hubeei.skillzserver.com/public${content}`}
+            //src={"https://research.google.com/pubs/archive/44678.pdf"}
             allowFullScreen
             className="w-[100%] h-[400px]"
           ></iframe>
@@ -289,6 +369,11 @@ export default function Page() {
     }
 
     //response.catch()
+  };
+
+  const updateEngagmentData = (data) => {
+    setEngagmentData(data);
+    console.log("i am data", data);
   };
 
   return (
@@ -397,6 +482,39 @@ export default function Page() {
           </div>
         )}
       </AppModal>
+      <AppModal open={logoModal} handleClose={() => setLogoModal(false)}>
+        <div>
+          <div className="flex justify-center ">
+            <h1 className="text-[25px]">Update Logo</h1>
+          </div>
+          <div className="flex justify-center mt-6  ">
+            <div className="w-[100%]">
+              <UploadButton
+                accept="image/*"
+                handleOnChange={(e) => setLogoValue(e.target.files[0])}
+                text="Chose Your Logo"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-6 ">
+            {!logoModalLoader ? (
+              <ActionButton handleClick={updateLogo} withBG={true}>
+                Update
+              </ActionButton>
+            ) : (
+              <ActionButton withBG={true}>
+                <div className="flex justify-between ">
+                  <div>Update</div>
+                  <div className="pl-[10px]">
+                    <CircularProgress className="text-[#000]" size={20} />{" "}
+                  </div>
+                </div>
+              </ActionButton>
+            )}
+          </div>
+        </div>
+      </AppModal>
       <Dialog
         open={openDeleteContent}
         onClose={handleCloseDeleteContent}
@@ -430,6 +548,7 @@ export default function Page() {
       </Dialog>
       <AppModal open={open} handleClose={handleClose}>
         <CategoryContent categoryId={categoryId} />
+        <Engagement data={updateEngagmentData} />
       </AppModal>
       <AppModal
         open={updateContentState}
@@ -552,7 +671,14 @@ export default function Page() {
       {selectedHub ? (
         <div className="flex w-[100%]">
           <div className="w-[30%] h-[100vh] ">
-            <Sidebar hubList={hubs} showCreateHub={showCreateHub} />
+            {Object.keys(settings).length > 0 ? (
+              <Sidebar
+                hubList={hubs}
+                showCreateHub={showCreateHub}
+                setting={settings}
+                updateLogo={updateLogoModal}
+              />
+            ) : null}
           </div>
           <div className="w-[100%] pl-[30px] mt-4">
             <div className="w-[100%] flex justify-between">
@@ -593,11 +719,7 @@ export default function Page() {
               aria-label="add"
               onClick={() => handleOpenCategory()}
             >
-              <Tooltip
-                title="Create Category"
-                sx={{ background: "red" }}
-                className="bg-[#000]"
-              >
+              <Tooltip title="Create Category" className="bg-[#000]">
                 <AddCircleRoundedIcon className="text-[50px] text-[#DCD427] cursor-pointer " />
               </Tooltip>
             </div>

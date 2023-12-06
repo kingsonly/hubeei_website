@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Logo from "../../../public/images/logo.jpeg";
+import Logoempty from "../../../public/images/logoplaceholder-removebg-preview.png";
 import Image from "next/image";
 import { Typography } from "@mui/material";
-import SouthIcon from "@mui/icons-material/South";
 import ActionButton from "../ActionButton";
+import Switch from "@mui/material/Switch";
+import { styled } from "@mui/material/styles";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import axios from "axios";
+import { HexColorPicker } from "react-colorful";
 
 /**
  * SideBar is a component used to manage menu page navigation.
@@ -13,13 +18,126 @@ import ActionButton from "../ActionButton";
  * @return {HTMLElement}
  */
 
-const Sidebar = ({ SideBarLinks, hubList, showCreateHub }) => {
+const Sidebar = ({
+  SideBarLinks,
+  hubList,
+  showCreateHub,
+  setting,
+  updateLogo,
+}) => {
   const [showHub, setShowHub] = useState(false);
   const [showHubSettings, setShowHubSettings] = useState(false);
+  const [settings, setSettings] = useState(setting);
+  const [spotlight, setSpotlight] = useState(
+    parseInt(setting.sportlight.value)
+  );
+  const [menu, setMenu] = useState(parseInt(setting.menu.value));
+  const [search, setSearch] = useState(parseInt(setting.search.value));
+  const [bgColor, setBgColor] = useState(setting.backgound.value);
+  const [bgPicker, setBgPicker] = useState(false);
+  const [categoryPicker, setCategoryPicker] = useState(false);
+  const [contentPicker, setContentPicker] = useState(false);
+  const [contentColor, setContentColor] = useState(setting.content.value);
+  const [categoryColor, setCategoryColor] = useState(setting.category.value);
+  const [registration, setRegistration] = useState(
+    parseInt(setting.registration.value)
+  );
+
+  const CustomSwitch = styled(Switch)(() => ({
+    "& .MuiSwitch-track": {
+      width: "100%", // or specify the width you want
+    },
+    "& .MuiSwitch-switchBase.Mui-checked": {
+      color: "#DCD427",
+      "&:hover": {
+        backgroundColor: "#DCD427",
+      },
+    },
+    "& .MuiSwitch-switchBase": {
+      color: "#fff",
+
+      "&:hover": {
+        backgroundColor: "#fff",
+      },
+    },
+
+    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+      backgroundColor: "#DCD427",
+      color: "#DCD427",
+    },
+    "& .MuiSwitch-switchBase + .MuiSwitch-track": {
+      backgroundColor: "#fff",
+      color: "#fff",
+    },
+  }));
+
+  useEffect(() => {
+    console.log("i am settings ", settings);
+  }, []);
 
   const logout = () => {
     alert(1);
   };
+
+  const updateSettings = async (e, type) => {
+    switchAction(type, e);
+    let value;
+    if (type == "backgound" || type == "content" || type == "category") {
+      if (type == "backgound") {
+        setBgColor(e);
+      }
+      if (type == "content") {
+        setContentColor(e);
+      }
+
+      if (type == "category") {
+        setCategoryColor(e);
+      }
+      value = e;
+    } else {
+      if (e.target.checked == true) {
+        value = 1;
+      }
+      if (e.target.checked == false) {
+        value = 0;
+      }
+    }
+
+    let hubId = localStorage.getItem("hub");
+    let data = {
+      hub_id: hubId,
+      type: type,
+      value: value,
+    };
+
+    let response = await axios.post(
+      "https://api.hubeei.skillzserver.com/api/dashboard/hubs/settings/update",
+
+      data
+    );
+    if (response.data.status == "success") {
+      switchAction(type, e);
+    } else {
+    }
+  };
+
+  const switchAction = (type, e) => {
+    switch (type) {
+      case "sportlight":
+        setSpotlightState(e);
+        break;
+      case "menu":
+        setSpotlightState(e);
+        break;
+      case "search":
+        setSpotlightState(e);
+        break;
+      case "registration":
+        setSpotlightState(e);
+        break;
+    }
+  };
+
   const showHubListSettings = () => {
     if (showHubSettings) {
       setShowHubSettings(false);
@@ -35,6 +153,28 @@ const Sidebar = ({ SideBarLinks, hubList, showCreateHub }) => {
     }
   };
 
+  const bgPickerToggle = () => {
+    if (bgPicker == false) {
+      setBgPicker(true);
+    } else {
+      setBgPicker(false);
+    }
+  };
+  const categoryPickerToggle = () => {
+    if (categoryPicker == false) {
+      setCategoryPicker(true);
+    } else {
+      setCategoryPicker(false);
+    }
+  };
+  const contentPickerToggle = () => {
+    if (contentPicker == false) {
+      setContentPicker(true);
+    } else {
+      setContentPicker(false);
+    }
+  };
+
   const showCreateHubModal = () => {
     showCreateHub();
   };
@@ -43,6 +183,49 @@ const Sidebar = ({ SideBarLinks, hubList, showCreateHub }) => {
     localStorage.setItem("hubDetails", JSON.stringify(details));
     localStorage.setItem("hub", id);
     window.location.reload();
+  };
+  const setSpotlightState = (e) => {
+    let value;
+    if (e.target.checked == true) {
+      value = 1;
+    }
+    if (e.target.checked == false) {
+      value = 0;
+    }
+    setSpotlight(value);
+  };
+
+  const setMenuState = (e) => {
+    let value;
+    if (e.target.checked == true) {
+      value = 1;
+    }
+    if (e.target.checked == false) {
+      value = 0;
+    }
+    setMenu(value);
+  };
+
+  const setSearchState = (e) => {
+    let value;
+    if (e.target.checked == true) {
+      value = 1;
+    }
+    if (e.target.checked == false) {
+      value = 0;
+    }
+    setSearch(value);
+  };
+
+  const setRegistrationState = (e) => {
+    let value;
+    if (e.target.checked == true) {
+      value = 1;
+    }
+    if (e.target.checked == false) {
+      value = 0;
+    }
+    setRegistration(value);
   };
 
   const showHubListDesign = () => {
@@ -67,39 +250,60 @@ const Sidebar = ({ SideBarLinks, hubList, showCreateHub }) => {
   return (
     <>
       <div data-testid="sidebarlinks">
-        <div className="pb-[50px] overflow-auto flex flex-col h-screen fixed top-0 left-0 w-[273px] gap-y-[10px]">
-          <div className="flex items-center justify-center bg-white h-[145px]">
-            <Image src={Logo} alt="logo" />
+        <div className=" shadow-[#DCD427] font-roboto shadow-2xl pb-[50px] overflow-auto flex flex-col h-screen fixed top-0 left-0 w-[273px] gap-y-[10px]">
+          <div className="flex items-center justify-center bg-black ">
+            <Image src={Logo} alt="logo" width={200} className="mt-2" />
           </div>
           <div
             style={{
               background: "#FFFFFF",
               height: "100%",
-              display: "flex",
-              flexDirection: "column",
             }}
           >
             <div
-              onClick={() => logout()}
               key="100"
-              className="flex flex-row border-l-[10px] border-[#FFFFFF] h-[64px] mt-[10px] nav-style gap-x-[24px] text-[#7E7E7E] nav-inactive"
+              className=" min-h-[64px]  nav-style  text-[#7E7E7E] bg-[#000]"
               style={{
-                height: "64px",
-                display: "flex",
-                columnGap: "40px",
-                textDecoration: "none",
-                marginTop: "10px",
+                minHeight: "200px",
+                borderTop: "solid #DCD427 2px",
+                borderBottom: "solid #DCD427 3px",
                 alignItems: "center",
               }}
             >
-              <div className="show-inactive pl-2">icons</div>
-              <span>Logout</span>
+              {settings != null && Object.keys(settings).length > 0 ? (
+                <>
+                  <div className="show-inactive p-2 flex justify-center text-center ">
+                    {settings.logo.value.trim().length != 0 ? (
+                      <Image
+                        src={`https://api.hubeei.skillzserver.com/public${settings.logo.value}`}
+                        width="20px"
+                      />
+                    ) : (
+                      <Image
+                        src={Logoempty}
+                        alt="logo"
+                        width="100"
+                        className="rounded-full h-[100px] bg-[#DCD427]"
+                      />
+                    )}
+                  </div>
+                  <div className=" p-2 text-center ">
+                    <Typography variant="h4" className="text-[#DCD427]">
+                      {settings.title}
+                    </Typography>
+                  </div>
+                  <div className=" p-2 h-[100px] ">
+                    <Typography variant="h6" className="text-[#DCD427]">
+                      {settings.description}
+                    </Typography>
+                  </div>
+                </>
+              ) : null}
             </div>
 
             <div
               className=" text-[#7E7E7E]"
               style={{
-                marginTop: "10px",
                 alignItems: "center",
               }}
             >
@@ -107,11 +311,10 @@ const Sidebar = ({ SideBarLinks, hubList, showCreateHub }) => {
                 style={{
                   height: "64px",
                   display: "flex",
-                  border: "solid 1px #fff",
                 }}
               >
                 <div
-                  className=" ring ring-gray-300 cursor-pointer flex justify-center items-center  w-[100%] "
+                  className="  cursor-pointer flex justify-center items-center  w-[100%] "
                   onClick={() => showHubList()}
                 >
                   <span className=" ">Hubs</span>
@@ -125,7 +328,7 @@ const Sidebar = ({ SideBarLinks, hubList, showCreateHub }) => {
                       {/* here we would put the button for subscription or for creating a new hub as the case may be  */}
                       <div className="flex justify-center mt-4">
                         <ActionButton
-                          className="beacon-button"
+                          className="beacon-button "
                           withBG={true}
                           handleClick={showCreateHubModal}
                         >
@@ -160,16 +363,163 @@ const Sidebar = ({ SideBarLinks, hubList, showCreateHub }) => {
                 </div>
               </div>
               {showHubSettings ? (
-                <div className="bg-[#000] pb-4 ">
-                  <div>Update Logo</div>
-                  <div>Registration</div>
-                  <div>Subscribers</div>
-                  <div>sportlight</div>
-                  <div>menu</div>
-                  <div>Search Bar</div>
-                  <div>Background Color</div>
-                  <div>Content Font Color</div>
-                  <div>Category Font Color</div>
+                <div className="bg-[#000] pb-4 px-2 ">
+                  <div>
+                    <FormControlLabel
+                      control={
+                        <CustomSwitch
+                          checked={spotlight}
+                          onChange={(e) => updateSettings(e, "sportlight")}
+                          name="Spotlight"
+                        />
+                      }
+                      label={
+                        <Typography
+                          variant="h6"
+                          className={`${
+                            spotlight == 0 ? "text-[#ccc]" : "text-[#DCD427]"
+                          }`}
+                        >
+                          Spotlight
+                        </Typography>
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <FormControlLabel
+                      control={
+                        <CustomSwitch
+                          checked={registration}
+                          onChange={(e) => updateSettings(e, "registration")}
+                          name="registration"
+                        />
+                      }
+                      label={
+                        <Typography
+                          variant="h6"
+                          className={`${
+                            registration == 0 ? "text-[#ccc]" : "text-[#DCD427]"
+                          }`}
+                        >
+                          Registration
+                        </Typography>
+                      }
+                    />
+                  </div>
+                  <div>
+                    <FormControlLabel
+                      control={
+                        <CustomSwitch
+                          checked={menu}
+                          onChange={(e) => updateSettings(e, "menu")}
+                          name="Menu"
+                        />
+                      }
+                      label={
+                        <Typography
+                          variant="h6"
+                          className={`${
+                            menu == 0 ? "text-[#ccc]" : "text-[#DCD427]"
+                          }`}
+                        >
+                          Menu
+                        </Typography>
+                      }
+                    />
+                  </div>
+                  <div>
+                    <FormControlLabel
+                      control={
+                        <CustomSwitch
+                          checked={search}
+                          onChange={(e) => setSpotlightState(e, "search")}
+                          name="search"
+                        />
+                      }
+                      label={
+                        <Typography
+                          variant="h6"
+                          className={`${
+                            search == 0 ? "text-[#ccc]" : "text-[#DCD427]"
+                          }`}
+                        >
+                          Search Bar
+                        </Typography>
+                      }
+                    />
+                  </div>
+                  {registration == 1 ? (
+                    <div>
+                      <ActionButton withBG={true} className="w-[100%]">
+                        Subscribers
+                      </ActionButton>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-4">
+                    <ActionButton
+                      handleClick={updateLogo}
+                      withBorder={true}
+                      className={`w-[100%]`}
+                    >
+                      Update Logo
+                    </ActionButton>
+                  </div>
+                  <div className="mt-4">
+                    <ActionButton
+                      className="w-[100%] "
+                      withBorder={true}
+                      handleClick={bgPickerToggle}
+                      style={{ backgroundColor: bgColor }}
+                    >
+                      Background Color
+                    </ActionButton>
+                    {bgPicker ? (
+                      <div className="mt-4 w-[100%] flex justify-center">
+                        <HexColorPicker
+                          color={bgColor}
+                          onChange={(e) => updateSettings(e, "backgound")}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="mt-4">
+                    <ActionButton
+                      handleClick={contentPickerToggle}
+                      withBorder={true}
+                      className="w-[100%]"
+                      style={{ backgroundColor: contentColor }}
+                    >
+                      Content Font Color
+                    </ActionButton>
+                    {contentPicker ? (
+                      <div className="mt-4 w-[100%] flex justify-center">
+                        <HexColorPicker
+                          color={contentColor}
+                          onChange={(e) => updateSettings(e, "content")}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="mt-4">
+                    <ActionButton
+                      handleClick={categoryPickerToggle}
+                      withBorder={true}
+                      className="w-[100%] "
+                      style={{ backgroundColor: categoryColor }}
+                    >
+                      Category Font Color
+                    </ActionButton>
+                    {categoryPicker ? (
+                      <div className="mt-4 w-[100%] flex justify-center">
+                        <HexColorPicker
+                          color={categoryColor}
+                          onChange={(e) => updateSettings(e, "category")}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
             </div>

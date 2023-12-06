@@ -5,11 +5,13 @@ export default function ActionButton({
   handleClick,
   withText = "",
   className,
+  style,
 }) {
   return (
     <div
+      style={style}
       onClick={handleClick}
-      className={`grid justify-items-center  content-center  rounded pl-2 pr-2 h-12 ${
+      className={` grid justify-items-center  content-center  rounded pl-2 pr-2 h-12 ${
         withBorder == true
           ? "border-2 border-solid shadow-md shadow-[#DCD427]  border-[#DCD427]"
           : ""
@@ -25,7 +27,7 @@ export default function ActionButton({
               : "text-[#FFF]"
             : ""
         }
-        w-[160px] text-[25px]
+        min-w-[160px] text-[25px]
         cursor-pointer
         ${className}
         `}
