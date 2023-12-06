@@ -143,9 +143,9 @@ export default function Engagement({ className, style, data }) {
         <div>
           {questions.map((item, index) => (
             <div
-              className={`bg-[${
-                index % 2 == 0 ? "#000" : "pink"
-              }] mt-4 rounded`}
+              className={`bg-[${index % 2 == 0 ? "#000" : "#000"}] border-[${
+                index % 2 == 0 ? "#DCD427" : "#fff"
+              }] mt-4 rounded-xl border-2 border-[solid] `}
             >
               <div className="flex justify-between">
                 <div className="w-[85%]">
@@ -197,7 +197,7 @@ export default function Engagement({ className, style, data }) {
                               control={<Radio sx={{ color: "white" }} />}
                               label={
                                 <span
-                                  style={{ fontSize: "14px", color: "white" }}
+                                  style={{ fontSize: "13px", color: "white" }}
                                 >
                                   Pool
                                 </span>
@@ -210,7 +210,7 @@ export default function Engagement({ className, style, data }) {
                               control={<Radio sx={{ color: "white" }} />}
                               label={
                                 <span
-                                  style={{ fontSize: "14px", color: "white" }}
+                                  style={{ fontSize: "13px", color: "white" }}
                                 >
                                   Survey
                                 </span>
@@ -242,7 +242,7 @@ export default function Engagement({ className, style, data }) {
                               control={<Radio sx={{ color: "white" }} />}
                               label={
                                 <span
-                                  style={{ fontSize: "14px", color: "white" }}
+                                  style={{ fontSize: "13px", color: "white" }}
                                 >
                                   Single
                                 </span>
@@ -255,7 +255,7 @@ export default function Engagement({ className, style, data }) {
                               control={<Radio sx={{ color: "white" }} />}
                               label={
                                 <span
-                                  style={{ fontSize: "14px", color: "white" }}
+                                  style={{ fontSize: "13px", color: "white" }}
                                 >
                                   Multiple
                                 </span>
@@ -287,7 +287,7 @@ export default function Engagement({ className, style, data }) {
                               control={<Radio sx={{ color: "white" }} />}
                               label={
                                 <span
-                                  style={{ fontSize: "14px", color: "white" }}
+                                  style={{ fontSize: "13px", color: "white" }}
                                 >
                                   Hide
                                 </span>
@@ -299,7 +299,7 @@ export default function Engagement({ className, style, data }) {
                               control={<Radio sx={{ color: "white" }} />}
                               label={
                                 <span
-                                  style={{ fontSize: "14px", color: "white" }}
+                                  style={{ fontSize: "13px", color: "white" }}
                                 >
                                   Show
                                 </span>
@@ -350,12 +350,12 @@ export default function Engagement({ className, style, data }) {
                               <div className="">
                                 {item.optionType == "single" ? (
                                   <div>
+                                    <Typography>Correct / Wrong</Typography>
                                     <CustomSwitch
                                       checked={option.status}
                                       onChange={(e) =>
                                         setSingleAnswer(index, optionIndex, e)
                                       }
-                                      name="Spotlight"
                                     />
                                   </div>
                                 ) : (

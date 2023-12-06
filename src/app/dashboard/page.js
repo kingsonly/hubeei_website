@@ -56,7 +56,6 @@ export default function Page() {
   const [logoModal, setLogoModal] = useState(false);
   const [logoModalLoader, setLogoModalLoader] = useState(false);
   const [logoValue, setLogoValue] = useState();
-  const [engagmentData, setEngagmentData] = useState();
 
   useEffect(() => {
     bootstrap();
@@ -371,11 +370,6 @@ export default function Page() {
     //response.catch()
   };
 
-  const updateEngagmentData = (data) => {
-    setEngagmentData(data);
-    console.log("i am data", data);
-  };
-
   return (
     <main className="flex">
       <AppModal open={createHub} handleClose={() => setCreateHub(false)}>
@@ -548,7 +542,6 @@ export default function Page() {
       </Dialog>
       <AppModal open={open} handleClose={handleClose}>
         <CategoryContent categoryId={categoryId} />
-        <Engagement data={updateEngagmentData} />
       </AppModal>
       <AppModal
         open={updateContentState}
