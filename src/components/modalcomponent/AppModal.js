@@ -9,6 +9,8 @@ const style = {
   width: 800,
   bgcolor: "black",
   p: 4,
+  height: 400,
+  overflow: "auto",
 };
 
 export default function AppModal({ children, open, handleClose }) {

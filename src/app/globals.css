@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -26,6 +27,29 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-#fabs{
-  background-color: blue;
+
+@keyframes beacon {
+  0% {
+    box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.8);
+  }
+
+  50% {
+    box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0px rgba(255, 255, 255, 0);
+  }
+}
+
+.beacon-button {
+  animation: beacon 2s infinite;
+  /* Change to your button color */
+  color: #fff;
+  /* Change to your button text color */
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  outline: none;
 }

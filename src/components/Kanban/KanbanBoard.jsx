@@ -10,6 +10,11 @@ import Typography from "@mui/material/Typography";
 import step1 from "../../../public/images/step1.png";
 import ActionButton from "../ActionButton";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import KanBanCard from "./KanbanCard";
+import axios from "axios";
+import Carousel from "react-multi-carousel";
+import "react-multi-carousel/lib/styles.css";
 
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list["content"]);
@@ -60,18 +65,40 @@ const getListStyle = (isDraggingOver) => ({
   display: "flex",
 });
 
-export default function KanbanBoard({ categories, handleCreateNewContent }) {
+export default function KanbanBoard({
+  categories,
+  handleCreateNewContent,
+  viewContents,
+  updateContent,
+  deleteContent,
+}) {
   const [state, setState] = useState(categories);
+  const responsive = {
+    superLargeDesktop: {
+      // the naming can be any, depends on you.
+      breakpoint: { max: 4000, min: 3000 },
+      items: 5,
+    },
+    desktop: {
+      breakpoint: { max: 3000, min: 1024 },
+      items: 1,
+    },
+    tablet: {
+      breakpoint: { max: 1024, min: 464 },
+      items: 1,
+    },
+    mobile: {
+      breakpoint: { max: 464, min: 0 },
+      items: 1,
+    },
+  };
 
   const createNewContent = (id) => {
     handleCreateNewContent(id);
   };
 
-  const setIsFlipped1Function = (value, index, index2) => {
-    console.log(index);
-    let newIsFlipped1 = [...state];
-    newIsFlipped1[index].content[index2].display = value;
-    setState(newIsFlipped1);
+  const viewContent = (item) => {
+    viewContents(item);
   };
 
   function onDragEnd(result) {
@@ -89,20 +116,37 @@ export default function KanbanBoard({ categories, handleCreateNewContent }) {
       const newState = [...state];
       newState[sInd] = items;
       setState(newState);
+      console.log("i am data", newState);
+      changeContentPosition(newState);
     } else {
       const result = move(state[sInd], state[dInd], source, destination);
-
       const newState = [...state];
       newState[sInd]["content"] = result[sInd];
       newState[dInd]["content"] = result[dInd];
 
       setState(newState);
+      // post data to saver from here
+      console.log("i am data", newState);
+      changeContentPosition(newState);
     }
   }
 
+  const changeContentPosition = async (data) => {
+    let response = await axios.post(
+      "https://api.hubeei.skillzserver.com/api/content/change-content-position",
+      { data: data }
+    );
+
+    if (response.data.status == "success") {
+      alert("done");
+    } else {
+      alert("error");
+    }
+  };
+
   return (
     <div>
-      <div>
+      <div className="">
         <DragDropContext onDragEnd={onDragEnd}>
           {state.map((el, ind) => {
             return (
@@ -113,7 +157,7 @@ export default function KanbanBoard({ categories, handleCreateNewContent }) {
               >
                 {(provided, snapshot) => {
                   return (
-                    <div className="flex mt-10">
+                    <div className="flex mt-10 ">
                       <div className="w-[20%] flex items-center justify-center">
                         <div>
                           <div className="">{el.name}</div>
@@ -121,7 +165,7 @@ export default function KanbanBoard({ categories, handleCreateNewContent }) {
                             className="flex justify-center  mt-3"
                             onClick={() => createNewContent(el.id)}
                           >
-                            <AddCircleRoundedIcon className="text-[40px] text-[#FDC435] cursor-pointer " />
+                            <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
                           </div>
                         </div>
                       </div>
@@ -130,7 +174,7 @@ export default function KanbanBoard({ categories, handleCreateNewContent }) {
                         ref={provided.innerRef}
                         style={getListStyle(snapshot.isDraggingOver)}
                         {...provided.droppableProps}
-                        className="mb-10 "
+                        className="mb-10 overflow-x-auto "
                       >
                         {el.content.map((item, index) => {
                           return (
@@ -149,83 +193,12 @@ export default function KanbanBoard({ categories, handleCreateNewContent }) {
                                     provided.draggableProps.style
                                   )}
                                 >
-                                  <div>
-                                    <FlipCard isFlipped={item.display}>
-                                      <Card
-                                        sx={{ width: 300, height: 300 }}
-                                        onMouseEnter={() =>
-                                          setIsFlipped1Function(
-                                            true,
-                                            ind,
-                                            index
-                                          )
-                                        }
-                                      >
-                                        <CardMedia
-                                          component="img"
-                                          sx={{ height: 200 }}
-                                          image={item.thumbnail}
-                                        />
-                                        <CardContent>
-                                          <Typography
-                                            gutterBottom
-                                            variant="h5"
-                                            component="div"
-                                          >
-                                            {item.name}
-                                          </Typography>
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                          >
-                                            {item.content_description}
-                                          </Typography>
-                                        </CardContent>
-                                      </Card>
-                                      <Card
-                                        sx={{ width: 300 }}
-                                        onMouseLeave={() =>
-                                          setIsFlipped1Function(
-                                            false,
-                                            ind,
-                                            index
-                                          )
-                                        }
-                                      >
-                                        <CardMedia
-                                          component="img"
-                                          sx={{ height: 200 }}
-                                          image={item.thumbnail}
-                                        />
-                                        <CardContent>
-                                          <Typography
-                                            variant="h5"
-                                            component="div"
-                                          >
-                                            {item.name}
-                                          </Typography>
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            component="div"
-                                          >
-                                            <div className="flex justify-between">
-                                              <ActionButton withBG={true}>
-                                                Updates
-                                              </ActionButton>
-                                              <ActionButton
-                                                withText="text-[#bbb]"
-                                                withBorder={true}
-                                              >
-                                                {" "}
-                                                Delete
-                                              </ActionButton>
-                                            </div>
-                                          </Typography>
-                                        </CardContent>
-                                      </Card>
-                                    </FlipCard>
-                                  </div>
+                                  <KanBanCard
+                                    item={item}
+                                    viewContents={() => viewContent(item)}
+                                    updateContent={() => updateContent(item)}
+                                    deleteContent={() => deleteContent(item)}
+                                  />
                                 </div>
                               )}
                             </Draggable>

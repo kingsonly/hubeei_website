@@ -1,9 +1,15 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+import CheckIcon from "@mui/icons-material/Check";
 export default function UploadButton({ handleOnChange, text, accept = "" }) {
+  const [selected, setSelected] = useState(false);
   const fileRef = useRef(null);
+  const handleOnChangeLocal = (e) => {
+    handleOnChange(e);
+    setSelected(true);
+  };
   return (
     <div className=" h-[58px] m-[8px] flex justify-between items-center  w-[100%]">
       <div
@@ -19,7 +25,7 @@ export default function UploadButton({ handleOnChange, text, accept = "" }) {
           <div className="w-[80%]">
             <input
               type="file"
-              onChange={handleOnChange}
+              onChange={handleOnChangeLocal}
               style={{ display: "none" }}
               ref={fileRef}
               accept={accept}
@@ -27,7 +33,11 @@ export default function UploadButton({ handleOnChange, text, accept = "" }) {
             {text}
           </div>
           <div className="w-[20%] text-right">
-            <FileUploadIcon />
+            {selected ? (
+              <CheckIcon className="text-[green] " />
+            ) : (
+              <FileUploadIcon />
+            )}
           </div>
         </div>
       </div>
