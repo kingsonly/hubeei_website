@@ -64,8 +64,10 @@ export default function Page() {
   const init = async () => {
     // there is no selected hub in the local storage , then get a list of all the hubs
     let getHub = localStorage.getItem("hub");
-    if (getHub == undefined) {
+
+    if (getHub == null) {
       let userData = JSON.parse(localStorage.getItem("userData"));
+      let id = localStorage.getItem("hub");
       if (userData != undefined) {
         let userId = userData.id;
         let response = await axios.get(
@@ -80,7 +82,8 @@ export default function Page() {
           localStorage.setItem("hubList", JSON.stringify(response.data.data));
           let id = localStorage.getItem("hub");
           let hubDetails = JSON.parse(localStorage.getItem("hubDetails"));
-          action(id, hubDetails);
+          //action(id, hubDetails);
+          createSettings();
         } else {
           //handle the error here
         }
@@ -94,6 +97,8 @@ export default function Page() {
       action(id, hubDetails);
       setSelectedHub(true);
       getDashboardStats();
+      createSettings();
+
       // fetch all hub details and display on the dashboard
     }
   };
@@ -138,10 +143,15 @@ export default function Page() {
   const bootstrap = async () => {
     isLoggedIn();
     init();
+  };
+
+  const createSettings = async () => {
     let localSettings = JSON.parse(localStorage.getItem("hubDetails"));
-    localSettings.settings["title"] = localSettings.name;
-    localSettings.settings["description"] = localSettings.description;
-    setSettings(localSettings.settings);
+    if (localSettings != undefined) {
+      localSettings.settings["title"] = localSettings.name;
+      localSettings.settings["description"] = localSettings.description;
+      setSettings(localSettings.settings);
+    }
   };
 
   const isLoggedIn = () => {
@@ -187,7 +197,7 @@ export default function Page() {
         setHubLoader(false);
         if (response.data.status == "sucess") {
           // save new hub id in local storage
-          localStorage.setItem("hub", response.data.data.id);
+          //localStorage.setItem("hub", response.data.data.id);
           // move user to new hub.
           setRefreshLoader(true);
           window.location.reload();
@@ -253,9 +263,8 @@ export default function Page() {
 
   const action = async (id, details) => {
     setLoader(true);
-
+    var newHubDetails = {};
     if (details) {
-      let newHubDetails = {};
       if (details.settings instanceof Array) {
         await details.settings.map((item) => {
           if (item.name == "logo") {
@@ -276,9 +285,6 @@ export default function Page() {
           if (item.name == "category") {
             newHubDetails["category"] = item;
           }
-          if (item.name == "category") {
-            newHubDetails["category"] = item;
-          }
           if (item.name == "backgound") {
             newHubDetails["backgound"] = item;
           }
@@ -290,13 +296,16 @@ export default function Page() {
           }
           console.log(newHubDetails);
         });
+        newHubDetails["title"] = details.name;
+        newHubDetails["description"] = details.description;
         details.settings = newHubDetails;
 
         localStorage.setItem("hubDetails", JSON.stringify(details));
+        setSettings(details.settings);
       }
     }
 
-    // after showing loader fetch every hub content
+    // lets have a 3 seconsd delay for info to set
     let response = await axios.get(
       `https://api.hubeei.skillzserver.com/api/category-content/${id}`
     );
@@ -307,6 +316,7 @@ export default function Page() {
       setCategories(response.data.data);
       setLoader(false);
       localStorage.setItem("hub", id);
+      //localStorage.setItem("hub", id);
 
       setSelectedHub(true);
     } else {
@@ -665,12 +675,18 @@ export default function Page() {
         <div className="flex w-[100%]">
           <div className="w-[30%] h-[100vh] ">
             {Object.keys(settings).length > 0 ? (
-              <Sidebar
-                hubList={hubs}
-                showCreateHub={showCreateHub}
-                setting={settings}
-                updateLogo={updateLogoModal}
-              />
+              <div>
+                {console.log(
+                  "whats the issue with settings ",
+                  settings.settings
+                )}
+                <Sidebar
+                  hubList={hubs}
+                  showCreateHub={showCreateHub}
+                  setting={settings}
+                  updateLogo={updateLogoModal}
+                />
+              </div>
             ) : null}
           </div>
           <div className="w-[100%] pl-[30px] mt-4">

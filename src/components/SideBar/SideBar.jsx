@@ -232,7 +232,6 @@ const Sidebar = ({
     let hubID = localStorage.getItem("hub");
 
     if (hubList.length > 1) {
-      //setHubLenght(true);
       return hubList.map((items) =>
         items.id != hubID ? (
           <div className="flex justify-center item-center pt-4   ">
@@ -276,7 +275,8 @@ const Sidebar = ({
                     {settings.logo.value.trim().length != 0 ? (
                       <Image
                         src={`https://api.hubeei.skillzserver.com/public${settings.logo.value}`}
-                        width="20px"
+                        width={100}
+                        height={100}
                       />
                     ) : (
                       <Image

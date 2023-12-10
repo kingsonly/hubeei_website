@@ -54,7 +54,8 @@ export default function CategoryContent({ categoryId }) {
 
       await axios
         .post(
-          "https://api.hubeei.skillzserver.com/api/content/create",
+          //"https://api.hubeei.skillzserver.com/api/content/create",
+          "http://localhost:3040/api/content/create",
           formData,
           {
             headers: {
