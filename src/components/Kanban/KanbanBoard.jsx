@@ -133,7 +133,7 @@ export default function KanbanBoard({
 
   const changeContentPosition = async (data) => {
     let response = await axios.post(
-      "https://api.hubeei.skillzserver.com/api/content/change-content-position",
+      `${process.env.NEXT_PUBLIC_BACKEND_API}content/change-content-position`,
       { data: data }
     );
 
@@ -157,54 +157,61 @@ export default function KanbanBoard({
               >
                 {(provided, snapshot) => {
                   return (
-                    <div className="flex mt-10 ">
-                      <div className="w-[20%] flex items-center justify-center">
-                        <div>
-                          <div className="">{el.name}</div>
-                          <div
-                            className="flex justify-center  mt-3"
-                            onClick={() => createNewContent(el.id)}
-                          >
-                            <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
-                          </div>
-                        </div>
+                    <div>
+                      <div className="w-[100%] border">
+                        <Typography variant="h3" className="font-roboto">
+                          {el.name}
+                        </Typography>
                       </div>
 
-                      <div
-                        ref={provided.innerRef}
-                        style={getListStyle(snapshot.isDraggingOver)}
-                        {...provided.droppableProps}
-                        className="mb-10 overflow-x-auto "
-                      >
-                        {el.content.map((item, index) => {
-                          return (
-                            <Draggable
-                              key={`${item.id}`}
-                              draggableId={`${item.id}`}
-                              index={index}
+                      <div className="flex  ">
+                        <div className="w-[20%] flex items-center justify-center">
+                          <div>
+                            <div
+                              className="flex justify-center  mt-3"
+                              onClick={() => createNewContent(el.id)}
                             >
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  style={getItemStyle(
-                                    snapshot.isDragging,
-                                    provided.draggableProps.style
-                                  )}
-                                >
-                                  <KanBanCard
-                                    item={item}
-                                    viewContents={() => viewContent(item)}
-                                    updateContent={() => updateContent(item)}
-                                    deleteContent={() => deleteContent(item)}
-                                  />
-                                </div>
-                              )}
-                            </Draggable>
-                          );
-                        })}
-                        {provided.placeholder}
+                              <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          ref={provided.innerRef}
+                          style={getListStyle(snapshot.isDraggingOver)}
+                          {...provided.droppableProps}
+                          className="mb-10 overflow-x-auto "
+                        >
+                          {el.content.map((item, index) => {
+                            return (
+                              <Draggable
+                                key={`${item.id}`}
+                                draggableId={`${item.id}`}
+                                index={index}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={getItemStyle(
+                                      snapshot.isDragging,
+                                      provided.draggableProps.style
+                                    )}
+                                  >
+                                    <KanBanCard
+                                      item={item}
+                                      viewContents={() => viewContent(item)}
+                                      updateContent={() => updateContent(item)}
+                                      deleteContent={() => deleteContent(item)}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            );
+                          })}
+                          {provided.placeholder}
+                        </div>
                       </div>
                     </div>
                   );

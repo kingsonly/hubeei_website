@@ -115,7 +115,7 @@ export default function Home() {
       };
       try {
         const response = await Axios.post(
-          "https://api.hubeei.skillzserver.com/api/register",
+          `${process.env.NEXT_PUBLIC_BACKEND_API}register`,
           data
         );
         if (response.data.status == "success") {
@@ -165,7 +165,7 @@ export default function Home() {
       };
       try {
         const response = await Axios.post(
-          "https://api.hubeei.skillzserver.com/api/login",
+          `${process.env.NEXT_PUBLIC_BACKEND_API}login`,
           data
         );
         if (response.data.status == "success") {

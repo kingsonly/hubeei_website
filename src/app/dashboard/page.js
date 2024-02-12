@@ -56,6 +56,7 @@ export default function Page() {
   const [logoModal, setLogoModal] = useState(false);
   const [logoModalLoader, setLogoModalLoader] = useState(false);
   const [logoValue, setLogoValue] = useState();
+  const [registrationSettings, setRegistrationSettings] = useState(false);
 
   useEffect(() => {
     bootstrap();
@@ -71,7 +72,7 @@ export default function Page() {
       if (userData != undefined) {
         let userId = userData.id;
         let response = await axios.get(
-          `https://api.hubeei.skillzserver.com/api/usershub/${userId}`
+          `${process.env.NEXT_PUBLIC_BACKEND_API}usershub/${userId}`
         );
 
         if (response.data.status == "success") {
@@ -112,7 +113,7 @@ export default function Page() {
     data.append("type", "logo");
     data.append("value", logoValue);
     let response = await axios.post(
-      "https://api.hubeei.skillzserver.com/api/dashboard/hubs/settings/update",
+      `${process.env.NEXT_PUBLIC_BACKEND_API}dashboard/hubs/settings/update`,
       data
     );
 
@@ -130,7 +131,7 @@ export default function Page() {
   const getDashboardStats = async () => {
     let getHub = localStorage.getItem("hub");
     let response = await axios.get(
-      `https://api.hubeei.skillzserver.com/api/dashboard/stats/${getHub}`
+      `${process.env.NEXT_PUBLIC_BACKEND_API}dashboard/stats/${getHub}`
     );
     if (response.data.status == "success") {
       setDashboardStats(response.data.data);
@@ -187,7 +188,7 @@ export default function Page() {
     };
 
     let response = axios.post(
-      `https://api.hubeei.skillzserver.com/api/hub/create`,
+      `${process.env.NEXT_PUBLIC_BACKEND_API}hub/create`,
       data,
       { headers }
     );
@@ -251,7 +252,7 @@ export default function Page() {
     setLoader(true);
     // after showing loader fetch every hub content
     let response = await axios.post(
-      `https://api.hubeei.skillzserver.com/api/create-category`,
+      `${process.env.NEXT_PUBLIC_BACKEND_API}create-category`,
       data
     );
 
@@ -307,7 +308,7 @@ export default function Page() {
 
     // lets have a 3 seconsd delay for info to set
     let response = await axios.get(
-      `https://api.hubeei.skillzserver.com/api/category-content/${id}`
+      `${process.env.NEXT_PUBLIC_BACKEND_API}category-content/${id}`
     );
 
     if (response.data.status == "success") {
@@ -329,7 +330,7 @@ export default function Page() {
       case "pdf":
         return (
           <iframe
-            src={`https://api.hubeei.skillzserver.com/public${content}`}
+            src={`${process.env.NEXT_PUBLIC_DOCUMENTS}public${content}`}
             //src={"https://research.google.com/pubs/archive/44678.pdf"}
             allowFullScreen
             className="w-[100%] h-[400px]"
@@ -344,7 +345,7 @@ export default function Page() {
           return (
             <ReactPlayer
               width={"100%"}
-              url={`https://api.hubeei.skillzserver.com/public${content}`}
+              url={`${process.env.NEXT_PUBLIC_DOCUMENTS}public${content}`}
               controls={true}
             />
           );
@@ -357,7 +358,7 @@ export default function Page() {
     setDeleteLoader(true);
     try {
       let response = await axios.post(
-        `https://api.hubeei.skillzserver.com/api/content/delete/${viewSelectedContents.id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API}content/delete/${viewSelectedContents.id}`,
         {}
       );
       if (response.data.satus == "success") {
@@ -380,8 +381,17 @@ export default function Page() {
     //response.catch()
   };
 
+  const showRegistrationSettings = () => {
+    setRegistrationSettings(true);
+  };
   return (
     <main className="flex">
+      <AppModal
+        open={registrationSettings}
+        handleClose={() => setRegistrationSettings(false)}
+      >
+        test me
+      </AppModal>
       <AppModal open={createHub} handleClose={() => setCreateHub(false)}>
         {refreshLoader ? (
           <div>
@@ -673,29 +683,28 @@ export default function Page() {
       </AppModal>
       {selectedHub ? (
         <div className="flex w-[100%]">
-          <div className="w-[30%] h-[100vh] ">
+          <div className="hidden lg:block w-[20%] h-[100vh] ">
             {Object.keys(settings).length > 0 ? (
               <div>
-                {console.log(
-                  "whats the issue with settings ",
-                  settings.settings
-                )}
                 <Sidebar
                   hubList={hubs}
                   showCreateHub={showCreateHub}
                   setting={settings}
                   updateLogo={updateLogoModal}
+                  showRegistrationSettings={showRegistrationSettings}
                 />
               </div>
             ) : null}
           </div>
-          <div className="w-[100%] pl-[30px] mt-4">
-            <div className="w-[100%] flex justify-between">
-              {dashboardStats.map((item) => (
-                <div className="w-[30%]">
-                  <DashboardCard title={item.title} value={item.count} />
-                </div>
-              ))}
+          <div className="w-[100%] lg:w-[78%] pl-[30px] mt-4">
+            <div className="w-[100%] lg:flex justify-between">
+              {dashboardStats.length > 0
+                ? dashboardStats.map((item) => (
+                    <div className="w-[100%] lg:w-[30%] mt-4 lg:mt-0">
+                      <DashboardCard title={item.title} value={item.count} />
+                    </div>
+                  ))
+                : null}
             </div>
             <div>
               {categories.length > 0 ? (
