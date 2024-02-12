@@ -16,12 +16,12 @@ export default function CategoryContent({ categoryId }) {
 
   const [content, setContent] = useState("");
   const [type, setType] = useState("");
-  const [withEngagment, setWithEngagment] = useState("no");
+  const [withEngagment, setWithEngagment] = useState(false);
   const [spotlight, setSpotlight] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [thumbnail, setThumbnail] = useState("");
-  const [engagmentData, setEngagmentData] = useState();
+  const [engagmentData, setEngagmentData] = useState([]);
 
   const CustomSwitch = styled(Switch)(() => ({
     "& .MuiSwitch-switchBase.Mui-checked": {
@@ -38,9 +38,13 @@ export default function CategoryContent({ categoryId }) {
   const updateEngagmentData = (data) => {
     setEngagmentData(data);
   };
+
   const handleSubmit = async () => {
     if (!loader) {
       setLoader(true);
+      if (type === "engagement") {
+        setWithEngagment(false);
+      }
 
       const formData = new FormData();
       formData.append("content", content);
@@ -50,12 +54,12 @@ export default function CategoryContent({ categoryId }) {
       formData.append("thumbnail", thumbnail);
       formData.append("sportlight", spotlight);
       formData.append("hub_category_id", categoryId);
+      formData.append("with_engagement", withEngagment);
       formData.append("engagment_data", JSON.stringify(engagmentData));
 
       await axios
         .post(
-          //"https://api.hubeei.skillzserver.com/api/content/create",
-          "http://localhost:3040/api/content/create",
+          `${process.env.NEXT_PUBLIC_BACKEND_API}content/create`,
           formData,
           {
             headers: {
@@ -65,23 +69,33 @@ export default function CategoryContent({ categoryId }) {
         )
         .then((response) => {
           setLoader(false);
-          console.log("File uploaded successfully:", response.data);
-          // Handle success, e.g., show a success message
         })
         .catch((error) => {
-          console.error("Error uploading file:", error);
           setLoader(false);
-          // Handle error, e.g., show an error message
         });
     }
   };
 
   const setExtraEngagment = (e) => {
-    setWithEngagment(e.target.checked);
+    switch (e.target.checked) {
+      case true:
+        setWithEngagment(1);
+        break;
+      default:
+        setWithEngagment(0);
+        break;
+    }
   };
 
   const setSpotlightState = (e) => {
-    setSpotlight(e.target.checked);
+    switch (e.target.checked) {
+      case true:
+        setSpotlight(1);
+        break;
+      default:
+        setSpotlight(0);
+        break;
+    }
   };
 
   const option = [
@@ -121,6 +135,7 @@ export default function CategoryContent({ categoryId }) {
   };
 
   const link = () => {
+    //setWithEngagment(false);
     return (
       <TextInput
         label="Video Link"
@@ -234,29 +249,33 @@ export default function CategoryContent({ categoryId }) {
             </div>
           </div>
           <div className="w-[23%]  p-4">
-            <div className="border-2 border-solid border-[#DCD427] rounded-full flex justify-around">
-              <FormControlLabel
-                className="text-[10px]"
-                control={
-                  <CustomSwitch
-                    checked={withEngagment}
-                    onChange={(e) => setExtraEngagment(e)}
-                    name="Engagement"
-                  />
-                }
-                label={
-                  <Typography style={{ fontSize: "10px" }}>
-                    Engagement
-                  </Typography>
-                }
-              />
-            </div>
+            {type !== "engagement" ? (
+              <div className="border-2 border-solid border-[#DCD427] rounded-full flex justify-around">
+                <FormControlLabel
+                  className="text-[10px]"
+                  control={
+                    <CustomSwitch
+                      checked={withEngagment}
+                      onChange={(e) => setExtraEngagment(e)}
+                      name="Engagement"
+                    />
+                  }
+                  label={
+                    <Typography style={{ fontSize: "10px" }}>
+                      Engagement
+                    </Typography>
+                  }
+                />
+              </div>
+            ) : null}
           </div>
         </div>
 
         <div>{displayContentTypes(type)}</div>
 
-        <div>displat with additional engagment</div>
+        <div>
+          {type !== "engagement" && withEngagment === 1 ? engagement() : null}
+        </div>
 
         <div className="flex justify-end">
           <ActionButton withBG={true} handleClick={handleSubmit}>

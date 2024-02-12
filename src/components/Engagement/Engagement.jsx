@@ -1,6 +1,6 @@
 "use client";
 import { Tooltip, Typography } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import TextInput from "../InputComponent/TextInput";
 import Radio from "@mui/material/Radio";
@@ -15,7 +15,14 @@ import { styled } from "@mui/material/styles";
 
 export default function Engagement({ className, style, data }) {
   const [questions, setQuestions] = useState([]);
+  const [engagementType, setEngagementType] = useState("");
+  const [engagementOptionType, setEngagementOptionType] = useState("");
+  const [optionTypeSelector, setOptionTypeSelector] = useState(false);
+  const [initMain, setInitMain] = useState(false);
 
+  useEffect(() => {
+    mainInit();
+  }, [initMain]);
   const CustomSwitch = styled(Switch)(() => ({
     "& .MuiSwitch-track": {
       width: "100%", // or specify the width you want
@@ -48,13 +55,50 @@ export default function Engagement({ className, style, data }) {
     let newQuestion = [...questions];
     newQuestion.push({
       question: "",
-      engagementType: "pool",
-      optionType: "single",
+      engagementType: engagementType,
+      optionType: engagementOptionType,
       display: "hide",
       answers: [{ answer: "", status: false }],
     });
     setQuestions(newQuestion);
   };
+  const mainInit = () => {
+    if (initMain) {
+      let newQuestion = [];
+      newQuestion.push({
+        question: "",
+        engagementType: engagementType,
+        optionType: engagementOptionType,
+        display: "hide",
+        answers: [{ answer: "", status: false }],
+      });
+      setQuestions(newQuestion);
+      setInitMain(false);
+    }
+  };
+
+  const selectOption = (e) => {
+    e = e.target.value;
+    setEngagementType(e);
+    setOptionTypeSelector(false);
+    switch (e) {
+      case "pool":
+        setEngagementOptionType("single");
+        break;
+      case "single":
+        setEngagementOptionType("single");
+        break;
+      case "multiple":
+        setEngagementOptionType("multiple");
+        break;
+      case "survey":
+        setEngagementOptionType("single");
+        break;
+    }
+    setInitMain(true);
+  };
+
+  const selectEngagmentType = () => {};
 
   const removeQuestion = (indexToDelete) => {
     let newQuestion = [...questions];
@@ -109,6 +153,7 @@ export default function Engagement({ className, style, data }) {
     setQuestions(newAnswer);
     data(newAnswer);
   };
+
   const setMultipleAnswer = (index, optionIndex, e) => {
     let newAnswer = [...questions];
     newAnswer[index].answers[optionIndex].status = e.target.value;
@@ -137,8 +182,23 @@ export default function Engagement({ className, style, data }) {
     console.log("lets investigate", question);
   };
 
+  const option = [
+    { label: "Pool", value: "pool" },
+    { label: "Survey", value: "survey" },
+    { label: "Single", value: "single" },
+    { label: "Multiple", value: "multiple" },
+  ];
+
   return (
     <div>
+      <div>
+        <TextInput
+          type="select"
+          options={option}
+          label="Engagement Type"
+          onChange={(e) => selectOption(e)}
+        />
+      </div>
       {questions.length > 0 ? (
         <div>
           {questions.map((item, index) => (
@@ -175,97 +235,54 @@ export default function Engagement({ className, style, data }) {
                   </div>
                   <div className="pl-[8px]">
                     <div className="flex justify-between">
-                      <div className="w-[30%] ">
-                        <FormControl>
-                          <FormLabel
-                            id="demo-row-radio-buttons-group-label"
-                            className="text-white"
-                          >
-                            Engagment Type
-                          </FormLabel>
-                          <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={item.engagementType}
-                            onChange={(e) =>
-                              changQuestionEntities(index, "engagement type", e)
-                            }
-                          >
-                            <FormControlLabel
-                              value="pool"
-                              control={<Radio sx={{ color: "white" }} />}
-                              label={
-                                <span
-                                  style={{ fontSize: "13px", color: "white" }}
-                                >
-                                  Pool
-                                </span>
+                      {engagementType == "survey" ? (
+                        <div className="w-[30%]">
+                          <FormControl>
+                            <FormLabel
+                              id="demo-row-radio-buttons-group-label"
+                              className="text-white"
+                            >
+                              Option Type
+                            </FormLabel>
+                            <RadioGroup
+                              row
+                              aria-labelledby="demo-row-radio-buttons-group-label"
+                              name="row-radio-buttons-group"
+                              value={item.optionType}
+                              onChange={(e) =>
+                                changQuestionEntities(index, "option type", e)
                               }
-                              sx={{ color: "white" }}
-                            />
+                            >
+                              <FormControlLabel
+                                value="single"
+                                control={<Radio sx={{ color: "white" }} />}
+                                label={
+                                  <span
+                                    style={{ fontSize: "13px", color: "white" }}
+                                  >
+                                    Single
+                                  </span>
+                                }
+                                sx={{ color: "white" }}
+                              />
 
-                            <FormControlLabel
-                              value="survey"
-                              control={<Radio sx={{ color: "white" }} />}
-                              label={
-                                <span
-                                  style={{ fontSize: "13px", color: "white" }}
-                                >
-                                  Survey
-                                </span>
-                              }
-                              sx={{ color: "white" }}
-                            />
-                          </RadioGroup>
-                        </FormControl>
-                      </div>
-                      <div className="w-[30%]">
-                        <FormControl>
-                          <FormLabel
-                            id="demo-row-radio-buttons-group-label"
-                            className="text-white"
-                          >
-                            Option Type
-                          </FormLabel>
-                          <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={item.optionType}
-                            onChange={(e) =>
-                              changQuestionEntities(index, "option type", e)
-                            }
-                          >
-                            <FormControlLabel
-                              value="single"
-                              control={<Radio sx={{ color: "white" }} />}
-                              label={
-                                <span
-                                  style={{ fontSize: "13px", color: "white" }}
-                                >
-                                  Single
-                                </span>
-                              }
-                              sx={{ color: "white" }}
-                            />
-
-                            <FormControlLabel
-                              value="multiple"
-                              control={<Radio sx={{ color: "white" }} />}
-                              label={
-                                <span
-                                  style={{ fontSize: "13px", color: "white" }}
-                                >
-                                  Multiple
-                                </span>
-                              }
-                              sx={{ color: "white" }}
-                            />
-                          </RadioGroup>
-                        </FormControl>
-                      </div>
-                      <div className="w-[30%]">
+                              <FormControlLabel
+                                value="multiple"
+                                control={<Radio sx={{ color: "white" }} />}
+                                label={
+                                  <span
+                                    style={{ fontSize: "13px", color: "white" }}
+                                  >
+                                    Multiple
+                                  </span>
+                                }
+                                sx={{ color: "white" }}
+                              />
+                            </RadioGroup>
+                          </FormControl>
+                        </div>
+                      ) : null}
+                      {/* <div className="w-[30%]">
                         <FormControl>
                           <FormLabel
                             id="demo-row-radio-buttons-group-label"
@@ -308,7 +325,7 @@ export default function Engagement({ className, style, data }) {
                             />
                           </RadioGroup>
                         </FormControl>
-                      </div>
+                      </div> */}
                     </div>
                     <div>
                       <div>
@@ -448,12 +465,14 @@ export default function Engagement({ className, style, data }) {
                   </div>
                 </div>
                 <div className="flex justify-between  items-center">
-                  {questions.length - 1 == index ? (
-                    <div onClick={addQuestion}>
-                      <Tooltip title="Add A New Question">
-                        <AddIcon className="text-[30px] text-[green] cursor-pointer " />
-                      </Tooltip>
-                    </div>
+                  {engagementType != "pool" ? (
+                    questions.length - 1 == index ? (
+                      <div onClick={addQuestion}>
+                        <Tooltip title="Add A New Question">
+                          <AddIcon className="text-[30px] text-[green] cursor-pointer " />
+                        </Tooltip>
+                      </div>
+                    ) : null
                   ) : null}
                   <div onClick={() => removeQuestion(index)}>
                     {questions.length - 1 == 0 ? null : (
@@ -467,15 +486,7 @@ export default function Engagement({ className, style, data }) {
             </div>
           ))}
         </div>
-      ) : (
-        <div className="flex justify-center w-[100%]">
-          <div className="" onClick={addQuestion}>
-            <Tooltip title="Add New Question">
-              <AddCircleRoundedIcon className="text-[60px] text-[#DCD427] cursor-pointer " />
-            </Tooltip>
-          </div>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -22,6 +22,8 @@ const Sidebar = ({
   SideBarLinks,
   hubList,
   showCreateHub,
+  showRegistrationSettings,
+  showSuscribers,
   setting,
   updateLogo,
 }) => {
@@ -42,6 +44,7 @@ const Sidebar = ({
   const [registration, setRegistration] = useState(
     parseInt(setting.registration.value)
   );
+  const [registrationData, setRegistrationData] = useState();
 
   const CustomSwitch = styled(Switch)(() => ({
     "& .MuiSwitch-track": {
@@ -110,9 +113,18 @@ const Sidebar = ({
       value: value,
     };
 
-    let response = await axios.post(
-      "https://api.hubeei.skillzserver.com/api/dashboard/hubs/settings/update",
+    if (type == "registration") {
+      setRegistrationData(data);
+      // show setting modal
+      if (e.target.checked == true) {
+        showRegistrationSettings();
+      }
 
+      return;
+    }
+
+    let response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_API}dashboard/hubs/settings/update`,
       data
     );
     if (response.data.status == "success") {
@@ -127,13 +139,13 @@ const Sidebar = ({
         setSpotlightState(e);
         break;
       case "menu":
-        setSpotlightState(e);
+        setMenuState(e);
         break;
       case "search":
-        setSpotlightState(e);
+        setSearchState(e);
         break;
       case "registration":
-        setSpotlightState(e);
+        setRegistrationState(e);
         break;
     }
   };
@@ -274,7 +286,7 @@ const Sidebar = ({
                   <div className="show-inactive p-2 flex justify-center text-center ">
                     {settings.logo.value.trim().length != 0 ? (
                       <Image
-                        src={`https://api.hubeei.skillzserver.com/public${settings.logo.value}`}
+                        src={`${process.env.NEXT_PUBLIC_DOCUMENTS}public${settings.logo.value}`}
                         width={100}
                         height={100}
                       />
@@ -433,7 +445,7 @@ const Sidebar = ({
                       control={
                         <CustomSwitch
                           checked={search}
-                          onChange={(e) => setSpotlightState(e, "search")}
+                          onChange={(e) => updateSettings(e, "search")}
                           name="search"
                         />
                       }

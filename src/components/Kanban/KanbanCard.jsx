@@ -50,7 +50,7 @@ export default function KanBanCard({
         <CardMedia
           component="img"
           sx={{ height: 200 }}
-          image={`https://api.hubeei.skillzserver.com/public${item.thumbnail}`}
+          image={`${process.env.NEXT_PUBLIC_DOCUMENTS}public${item.thumbnail}`}
         />
         <CardContent
           style={{

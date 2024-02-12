@@ -36,7 +36,7 @@ export default function UpdateContent({ data }) {
 
       await axios
         .post(
-          "https://api.hubeei.skillzserver.com/api/content/update/" + data.id,
+          `${process.env.NEXT_PUBLIC_BACKEND_API}content/update/${data.id}`,
           formData,
           {
             headers: {
