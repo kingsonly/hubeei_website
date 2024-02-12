@@ -3,33 +3,48 @@ import { useState } from "react";
 import ActionButton from "../ActionButton";
 import TextInput from "../InputComponent/TextInput";
 import UploadButton from "../InputComponent/UploadButton";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
 import CircularProgress from "@mui/material/CircularProgress";
 import axios from "axios";
+import Engagement from "../Engagement/Engagement";
+import { styled } from "@mui/material/styles";
+import Switch from "@mui/material/Switch";
+import { Typography } from "@mui/material";
 
 export default function CategoryContent({ categoryId }) {
-  const [step, setStep] = useState(0);
   const [loader, setLoader] = useState(false);
 
   const [content, setContent] = useState("");
   const [type, setType] = useState("");
-  const [withEngagment, setWithEngagment] = useState("no");
-  const [spotlight, setSpotlight] = useState("no");
+  const [withEngagment, setWithEngagment] = useState(false);
+  const [spotlight, setSpotlight] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [thumbnail, setThumbnail] = useState("");
+  const [engagmentData, setEngagmentData] = useState([]);
 
-  const handleNext = () => {
-    let currentstep = step;
-    setStep(currentstep + 1);
+  const CustomSwitch = styled(Switch)(() => ({
+    "& .MuiSwitch-switchBase.Mui-checked": {
+      color: "#DCD427",
+      "&:hover": {
+        backgroundColor: "#DCD427",
+      },
+    },
+    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+      backgroundColor: "#DCD427",
+    },
+  }));
+
+  const updateEngagmentData = (data) => {
+    setEngagmentData(data);
   };
+
   const handleSubmit = async () => {
     if (!loader) {
       setLoader(true);
+      if (type === "engagement") {
+        setWithEngagment(false);
+      }
 
       const formData = new FormData();
       formData.append("content", content);
@@ -37,11 +52,14 @@ export default function CategoryContent({ categoryId }) {
       formData.append("content_type", type);
       formData.append("content_description", description);
       formData.append("thumbnail", thumbnail);
+      formData.append("sportlight", spotlight);
       formData.append("hub_category_id", categoryId);
+      formData.append("with_engagement", withEngagment);
+      formData.append("engagment_data", JSON.stringify(engagmentData));
 
       await axios
         .post(
-          "https://api.hubeei.skillzserver.com/api/content/create",
+          `${process.env.NEXT_PUBLIC_BACKEND_API}content/create`,
           formData,
           {
             headers: {
@@ -51,37 +69,41 @@ export default function CategoryContent({ categoryId }) {
         )
         .then((response) => {
           setLoader(false);
-          console.log("File uploaded successfully:", response.data);
-          // Handle success, e.g., show a success message
         })
         .catch((error) => {
-          console.error("Error uploading file:", error);
           setLoader(false);
-          // Handle error, e.g., show an error message
         });
     }
   };
 
   const setExtraEngagment = (e) => {
-    console.log(e.target.value);
-    setWithEngagment(e.target.value);
+    switch (e.target.checked) {
+      case true:
+        setWithEngagment(1);
+        break;
+      default:
+        setWithEngagment(0);
+        break;
+    }
   };
 
   const setSpotlightState = (e) => {
-    setSpotlight(e.target.value);
-  };
-
-  const handlePrevious = () => {
-    let currentstep = step;
-    if (currentstep != 0) {
-      setStep(currentstep - 1);
+    switch (e.target.checked) {
+      case true:
+        setSpotlight(1);
+        break;
+      default:
+        setSpotlight(0);
+        break;
     }
   };
+
   const option = [
     { label: "Video Link", value: "link" },
     { label: "PDF", value: "pdf" },
     { label: "Video", value: "video" },
     { label: "Audio", value: "audio" },
+    { label: "Engagement", value: "engagement" },
   ];
 
   const video = () => {
@@ -113,11 +135,19 @@ export default function CategoryContent({ categoryId }) {
   };
 
   const link = () => {
+    //setWithEngagment(false);
     return (
       <TextInput
         label="Video Link"
         onChange={(e) => setContent(e.target.value)}
       />
+    );
+  };
+  const engagement = () => {
+    return (
+      <div className="my-4">
+        <Engagement data={updateEngagmentData} />
+      </div>
     );
   };
 
@@ -129,8 +159,8 @@ export default function CategoryContent({ categoryId }) {
         return video();
       case "pdf":
         return pdf();
-      case "engagment":
-        return "engagement";
+      case "engagement":
+        return engagement();
       case "audio":
         return audio();
     }
@@ -148,142 +178,126 @@ export default function CategoryContent({ categoryId }) {
       </div>
     );
   };
-  const steps = (step) => {
-    switch (step) {
-      case 1:
-        return (
-          <div>
-            <div className="flex justify-between">
-              <div className="w-[48%]">
-                <FormControl onChange={setSpotlightState}>
-                  <FormLabel id="demo-row-radio-buttons-group-label">
+  const steps = () => {
+    <div>{withEngagment == "yes" ? engagementCreator() : null}</div>;
+    <CustomSwitch
+      checked={spotlight}
+      onChange={(e) => updateSettings(e, "sportlight")}
+      name="Spotlight"
+    />;
+    return (
+      <div>
+        <div className="flex justify-between">
+          <div className="w-[48%]">
+            <TextInput
+              label={"Title"}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="w-[48%]">
+            <UploadButton
+              text="Thumbnail"
+              handleOnChange={(e) => setThumbnail(e.target.files[0])}
+            />
+          </div>
+        </div>
+        <div>
+          <TextInput
+            id="outlined-multiline-flexible"
+            label="Description"
+            multiline
+            onChange={(e) => setDescription(e.target.value)}
+            inputProps={{ style: { fontFamily: "Arial", color: "white" } }}
+            style={{ flex: 1, color: "white" }}
+            maxRows={10}
+            sx={{
+              "& .MuiFormLabel-root": {
+                color: "white",
+              },
+              "& .MuiFormLabel-root.Mui-focused": {
+                color: "white",
+              },
+            }}
+          />
+        </div>
+
+        <div className="flex justify-between">
+          <div className="w-[60%]">
+            <TextInput
+              type="select"
+              options={option}
+              label="Content Type"
+              onChange={(e) => selectOption(e)}
+            />
+          </div>
+          <div className="w-[20%]  p-4">
+            <div className="border-2 border-solid border-[#DCD427] rounded-full flex justify-center">
+              <FormControlLabel
+                control={
+                  <CustomSwitch
+                    checked={spotlight}
+                    onChange={(e) => setSpotlightState(e)}
+                    name="Spotlight"
+                  />
+                }
+                label={
+                  <Typography style={{ fontSize: "10px" }}>
                     Spotlight
-                  </FormLabel>
-                  <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-buttons-group"
-                    defaultValue="no"
-                    onChange={(e) => setSpotlightState(e.target.value)}
-                  >
-                    <FormControlLabel
-                      value="no"
-                      control={<Radio />}
-                      label="No"
-                    />
-
-                    <FormControlLabel
-                      value="yes"
-                      control={<Radio />}
-                      label="Yes"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </div>
-              <div className="w-[48%]">
-                <FormControl onChange={setExtraEngagment}>
-                  <FormLabel id="demo-row-radio-buttons-group-label">
-                    With Engagement
-                  </FormLabel>
-                  <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-buttons-group"
-                    defaultValue="no"
-                    onChange={(e) => setExtraEngagment(e.target.value)}
-                  >
-                    <FormControlLabel
-                      value="no"
-                      control={<Radio />}
-                      label="No"
-                    />
-
-                    <FormControlLabel
-                      value="yes"
-                      control={<Radio />}
-                      label="Yes"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </div>
-            </div>
-
-            <div>{withEngagment == "yes" ? engagementCreator() : null}</div>
-            <div className="flex justify-between w-[100%]">
-              <ActionButton withBG={true} handleClick={handlePrevious}>
-                Previous
-              </ActionButton>
-              <ActionButton withBG={true} handleClick={handleSubmit}>
-                <div className="flex justify-around w-[100%]">
-                  <div>Create</div>
-                  <div>
-                    {loader ? (
-                      <CircularProgress
-                        size={20}
-                        sx={{
-                          color: "green",
-                          zIndex: 1,
-                        }}
-                      />
-                    ) : null}
-                  </div>
-                </div>
-              </ActionButton>
+                  </Typography>
+                }
+              />
             </div>
           </div>
-        );
-
-      default:
-        return (
-          <div>
-            <div>
-              <TextInput
-                label={"Title"}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            <div>
-              <TextInput
-                id="outlined-multiline-flexible"
-                label="Description"
-                multiline
-                onChange={(e) => setDescription(e.target.value)}
-                inputProps={{ style: { fontFamily: "Arial", color: "white" } }}
-                style={{ flex: 1, color: "white" }}
-                maxRows={10}
-                sx={{
-                  "& .MuiFormLabel-root": {
-                    color: "white",
-                  },
-                  "& .MuiFormLabel-root.Mui-focused": {
-                    color: "white",
-                  },
-                }}
-              />
-            </div>
-            <div>
-              <UploadButton
-                handleOnChange={(e) => setThumbnail(e.target.files[0])}
-              />
-            </div>
-            <div>
-              <TextInput
-                type="select"
-                options={option}
-                label="Content Type"
-                onChange={(e) => selectOption(e)}
-              />
-            </div>
-            <div>{displayContentTypes(type)}</div>
-            <div className="flex justify-end">
-              <ActionButton withBG={true} handleClick={handleNext}>
-                Next
-              </ActionButton>
-            </div>
+          <div className="w-[23%]  p-4">
+            {type !== "engagement" ? (
+              <div className="border-2 border-solid border-[#DCD427] rounded-full flex justify-around">
+                <FormControlLabel
+                  className="text-[10px]"
+                  control={
+                    <CustomSwitch
+                      checked={withEngagment}
+                      onChange={(e) => setExtraEngagment(e)}
+                      name="Engagement"
+                    />
+                  }
+                  label={
+                    <Typography style={{ fontSize: "10px" }}>
+                      Engagement
+                    </Typography>
+                  }
+                />
+              </div>
+            ) : null}
           </div>
-        );
-    }
+        </div>
+
+        <div>{displayContentTypes(type)}</div>
+
+        <div>
+          {type !== "engagement" && withEngagment === 1 ? engagement() : null}
+        </div>
+
+        <div className="flex justify-end">
+          <ActionButton withBG={true} handleClick={handleSubmit}>
+            <div className="flex justify-around w-[100%]">
+              <div>Create</div>
+              <div>
+                {loader ? (
+                  <CircularProgress
+                    size={20}
+                    sx={{
+                      color: "green",
+                      zIndex: 1,
+                    }}
+                  />
+                ) : null}
+              </div>
+            </div>
+          </ActionButton>
+        </div>
+      </div>
+    );
   };
 
-  return <div className="">{steps(step)}</div>;
+  return <div className="">{steps()}</div>;
 }

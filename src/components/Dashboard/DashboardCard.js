@@ -1,3 +1,4 @@
+import { Typography } from "@mui/material";
 import React from "react";
 
 /**
@@ -16,54 +17,66 @@ export default function DashboardCard(props) {
   const neufunc = (valeu) => {
     alert(valeu);
   };
-  const { title, total, completed, ongoing, completedtitle, ongoingtitle } =
-    props;
+  const { title, value, type } = props;
   return (
     //data test id is the id used to get elements passed as arguments to the test files
 
-    <div
-      className=" border border-solid border-2 border-[#FDC435] shadow-lg shadow-[#333] w-[280px] bg-black pl-[13px]"
-      data-testid="dashboard-card"
-    >
-      <h3
-        className="flex justify-start font-bold text-[20px] font-semibold mb-[20px]"
-        data-testid="dashboard-card-title"
-      >
-        {title}
-      </h3>
-      <div className="flex justify-between">
-        <div className="  before:absolute before:ml-[80px] before:mt-[-20px] before:h-[60px] before:w-[5px] before:bg-gray-200">
-          <h1
-            className="font-bold text-[40px] font-black text-zinc-500 "
-            data-testid="Dashboard-card-project-total"
+    <div className="text-ellipsis overflow-hidden rounded-xl border border-solid border-2 border-[#DCD427] shadow-lg shadow-[#333] w-[100%] bg-black pl-[13px] h-[150px] p-4   shadow-lg transform -skew-x-3">
+      <div className="flex justify-center">
+        <Typography variant="h5" className="uppercase font-roboto">
+          {title}
+        </Typography>
+      </div>
+
+      <div className="flex justify-center h-[90px] items-center">
+        {type !== undefined ? (
+          <div className="flex justify-between h-[100%] items-center w-[100%]">
+            <div className=" h-[100%] w-[45%]">
+              <div className="text-center">
+                <Typography
+                  variant="h6"
+                  className="text-ellipsis uppercase font-roboto  w-[100%] text-[#DCD427]"
+                >
+                  {type[0].title}
+                </Typography>
+              </div>
+              <div className="text-center flex items-end h-[60%]">
+                <Typography
+                  variant="h4"
+                  className="uppercase font-roboto text-[#DCD427] w-[100%]"
+                >
+                  {type[0].value}
+                </Typography>
+              </div>
+            </div>
+            <div className="border-2 border-solid border-[#DCD427] h-[30px]"></div>
+            <div className=" h-[100%] w-[45%]">
+              <div className="text-center">
+                <Typography
+                  variant="h6"
+                  className="uppercase font-roboto  w-[100%] text-[#DCD427]"
+                >
+                  {type[1].title}
+                </Typography>
+              </div>
+              <div className="text-center flex items-end h-[60%]">
+                <Typography
+                  variant="h4"
+                  className="uppercase font-roboto text-[#DCD427] w-[100%] "
+                >
+                  {type[1].value}
+                </Typography>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Typography
+            variant="h2"
+            className="uppercase font-roboto text-[#DCD427]"
           >
-            {total}
-          </h1>
-        </div>
-        <div className="mt-[-15px] w-[60%]">
-          <div className="flex">
-            <p
-              className="font-medium text-amber-600"
-              data-testid="Dashboard-card-completed-project"
-            >
-              {completed}
-            </p>
-            <p className="ml-[5px] text-[13px] font-normal pt-[3px]">
-              {completedtitle ? completedtitle : "Completed"}
-            </p>
-          </div>
-          <div className="flex mt-[10px]">
-            <p
-              className="font-medium text-amber-600"
-              data-testid="Dashboard-card-ongoing-project"
-            >
-              {ongoing}
-            </p>
-            <p className="ml-[5px] text-[13px] font-normal pt-[3px]">
-              {ongoingtitle ? ongoingtitle : "Ongoing"}
-            </p>
-          </div>
-        </div>
+            {value}
+          </Typography>
+        )}
       </div>
     </div>
   );

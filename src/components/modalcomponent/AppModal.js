@@ -6,9 +6,12 @@ const style = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 800,
+  width: "80%",
   bgcolor: "black",
   p: 4,
+  minHeight: "40vh",
+  maxHeight: "80vh",
+  overflow: "auto",
 };
 
 export default function AppModal({ children, open, handleClose }) {

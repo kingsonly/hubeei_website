@@ -9,7 +9,7 @@ import step3 from "../../public/images/step3.png";
 import logo from "../../public/images/logo.jpeg";
 import ActionButton from "@/components/ActionButton.jsx";
 import FlipCard from "@/components/FlipCard.jsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
@@ -49,6 +49,22 @@ export default function Home() {
   const [hubName, setHubName] = useState("");
   const [hubUrl, setHubUrl] = useState("");
   const [hubDescription, setHubDescription] = useState("");
+
+  useEffect(() => {
+    bootstrap();
+  }, []);
+
+  const bootstrap = () => {
+    isLoggedIn();
+  };
+
+  const isLoggedIn = () => {
+    // check if a user is logged in and redirect the user to the dashboard page
+    let token = localStorage.getItem("token");
+    if (token != undefined) {
+      router.push("/dashboard");
+    }
+  };
 
   const headerStyle = {
     backgroundImage: `url('${bg.src}') `,
@@ -99,7 +115,7 @@ export default function Home() {
       };
       try {
         const response = await Axios.post(
-          "https://api.hubeei.skillzserver.com/api/register",
+          `${process.env.NEXT_PUBLIC_BACKEND_API}register`,
           data
         );
         if (response.data.status == "success") {
@@ -149,7 +165,7 @@ export default function Home() {
       };
       try {
         const response = await Axios.post(
-          "https://api.hubeei.skillzserver.com/api/login",
+          `${process.env.NEXT_PUBLIC_BACKEND_API}login`,
           data
         );
         if (response.data.status == "success") {
@@ -433,7 +449,7 @@ export default function Home() {
               <h1 className="text-[35px] text-bold text-[#ccc]">
                 HELP PEOPLE FIND YOUR CONTENT
               </h1>
-              <h2 className="text-[25px] text-bold text-[#FDC435] mt-4">
+              <h2 className="text-[25px] text-bold text-[#DCD427] mt-4">
                 Seamlessly white-label your Netflix-style content hub as part of
                 your brand. Boost audience engagement and brand awareness
                 instantly.
@@ -466,10 +482,10 @@ export default function Home() {
         </div>
         <div className="w-[50%] bg-no-repeat" style={headerStyle}></div>
       </div>
-      <div className="w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#FDC435] after:rounded after:mt-2  after:h-[5px] after:w-[200px]">
+      <div className="w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#DCD427] after:rounded after:mt-2  after:h-[5px] after:w-[200px]">
         <h1 className="text-[45px] text-bold text-[#fff]">
           Three easy
-          <span class="before:block before:absolute before:-inset-1 before:ml-2  before:mr-2  before:bg-[#FDC435] relative ">
+          <span class="before:block before:absolute before:-inset-1 before:ml-2  before:mr-2  before:bg-[#DCD427] relative ">
             <span class="relative text-black"> steps </span>
           </span>
           to get started
@@ -567,7 +583,7 @@ export default function Home() {
         </FlipCard>
       </div>
 
-      <div className=" mt-36 w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#FDC435] after:rounded after:mt-2  after:h-[5px] after:w-[100px]">
+      <div className=" mt-36 w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#DCD427] after:rounded after:mt-2  after:h-[5px] after:w-[100px]">
         <h1 className="text-[45px] text-bold text-[#fff]">Pricing</h1>
       </div>
 
