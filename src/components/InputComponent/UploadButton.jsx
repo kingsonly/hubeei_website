@@ -3,7 +3,12 @@ import React, { useRef, useState } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import CheckIcon from "@mui/icons-material/Check";
-export default function UploadButton({ handleOnChange, text, accept = "" }) {
+export default function UploadButton({
+  error,
+  handleOnChange,
+  text,
+  accept = "",
+}) {
   const [selected, setSelected] = useState(false);
   const fileRef = useRef(null);
   const handleOnChangeLocal = (e) => {
@@ -16,7 +21,8 @@ export default function UploadButton({ handleOnChange, text, accept = "" }) {
         onClick={() => {
           fileRef.current.click();
         }}
-        className="border-2 flex rounded-md h-[100%] w-[100%]"
+        className={`border-2   flex rounded-md h-[100%] w-[100%]`}
+        style={{ borderColor: error == true ? "red" : "" }}
       >
         <div className="border-r-2 p-2 flex items-center ">
           <AttachFileIcon />

@@ -1,37 +1,42 @@
-"use client";
-import DashboardCard from "@/components/Dashboard/DashboardCard";
-import KanbanBoard from "@/components/Kanban/KanbanBoard";
-import Sidebar from "@/components/SideBar/SideBar";
+import DashboardCard from "./components/Dashboard/DashboardCard";
+import KanbanBoard from "./components/Kanban/KanbanBoard";
+import Sidebar from "./components/SideBar/SideBar";
 import { useState } from "react";
 import Fab from "@mui/material/Fab";
 import AddIcon from "@mui/icons-material/Add";
-import AppModal from "@/components/modalcomponent/AppModal";
+import AppModal from "./components/modalcomponent/AppModal";
 import { styled } from "@mui/system";
-import ActionButton from "@/components/ActionButton";
-import CategoryContent from "@/components/CategoryContent/CategoryContent";
+import ActionButton from "./components/ActionButton";
+import CategoryContent from "./components/CategoryContent/CategoryContent";
 import { useEffect } from "react";
 import axios from "axios";
-import DashboardHubs from "@/components/Dashboard/DashboardHubs";
-import TextInput from "@/components/InputComponent/TextInput";
+import DashboardHubs from "./components/Dashboard/DashboardHubs";
+import TextInput from "./components/InputComponent/TextInput";
 import ReactPlayer from "react-player";
 import StarRateIcon from "@mui/icons-material/StarRate";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import UpdateContent from "@/components/UpdateContentComponent/UpdateContent";
+import UpdateContent from "./components/UpdateContentComponent/UpdateContent";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import Button from "@mui/material/Button";
 import { CircularProgress, Typography } from "@mui/material";
-import { useRouter } from "next/navigation";
+
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import Tooltip from "@mui/material/Tooltip";
-import UploadButton from "@/components/InputComponent/UploadButton";
-import Engagement from "@/components/Engagement/Engagement";
-export default function Page() {
-  const router = useRouter();
+import UploadButton from "./components/InputComponent/UploadButton";
+import Engagement from "./components/Engagement/Engagement";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import { useNavigate } from "react-router-dom";
+export default function Dashboard() {
+  const router = useNavigate();
   const [selectedHub, setSelectedHub] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const [showSnack, setShowSnack] = useState(false);
+  const [createdCounter, setCreatedCounter] = useState(0);
   const [dashboardStats, setDashboardStats] = useState([]);
   const [hubs, setHubs] = useState([]);
   const [loader, setLoader] = useState(false);
@@ -54,13 +59,19 @@ export default function Page() {
   const [createCategoryLoader, setCreateCategoryLoader] = useState(false);
   const [settings, setSettings] = useState({});
   const [logoModal, setLogoModal] = useState(false);
+  const [catTititleError, setCatTititleError] = useState(false);
   const [logoModalLoader, setLogoModalLoader] = useState(false);
   const [logoValue, setLogoValue] = useState();
   const [registrationSettings, setRegistrationSettings] = useState(false);
+  const [newHubError, setNewHubError] = useState({
+    name: "",
+    url: "",
+    description: "",
+  });
 
   useEffect(() => {
     bootstrap();
-  }, []);
+  }, [createdCounter]);
 
   const init = async () => {
     // there is no selected hub in the local storage , then get a list of all the hubs
@@ -72,7 +83,7 @@ export default function Page() {
       if (userData != undefined) {
         let userId = userData.id;
         let response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_API}usershub/${userId}`
+          `${process.env.REACT_APP_BACKEND_API}usershub/${userId}`
         );
 
         if (response.data.status == "success") {
@@ -105,23 +116,32 @@ export default function Page() {
   };
 
   const updateLogo = async () => {
+    let validationStatus = true;
     setLogoModalLoader(true);
-    let data = new FormData();
-    let hubId = localStorage.getItem("hub");
-
-    data.append("hub_id", hubId);
-    data.append("type", "logo");
-    data.append("value", logoValue);
-    let response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}dashboard/hubs/settings/update`,
-      data
-    );
-
-    if (response.data.status == "success") {
+    if (typeof logoValue == "undefined") {
+      setLogoError(true);
       setLogoModalLoader(false);
-      setLogoModal(false);
-    } else {
-      setLogoModalLoader(false);
+      validationStatus = false;
+    }
+
+    if (validationStatus) {
+      let data = new FormData();
+      let hubId = localStorage.getItem("hub");
+      data.append("hub_id", hubId);
+      data.append("type", "logo");
+      data.append("value", logoValue);
+      let response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_API}dashboard/hubs/settings/update`,
+        data
+      );
+
+      if (response.data.status == "success") {
+        setLogoModalLoader(false);
+        setLogoModal(false);
+        updateHubSettings(hubId);
+      } else {
+        setLogoModalLoader(false);
+      }
     }
   };
   const updateLogoModal = () => {
@@ -131,7 +151,7 @@ export default function Page() {
   const getDashboardStats = async () => {
     let getHub = localStorage.getItem("hub");
     let response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}dashboard/stats/${getHub}`
+      `${process.env.REACT_APP_BACKEND_API}dashboard/stats/${getHub}`
     );
     if (response.data.status == "success") {
       setDashboardStats(response.data.data);
@@ -159,14 +179,14 @@ export default function Page() {
     // check if a user is logged in and redirect the user to the dashboard page
     let token = localStorage.getItem("token");
     if (token == undefined) {
-      router.push("/");
+      router("/");
     }
   };
 
   const fabStyle = {
     position: "fixed",
-    bottom: 150,
-    right: 16,
+    bottom: 0,
+    width: "75%",
   };
 
   const handleClose = () => {
@@ -177,18 +197,49 @@ export default function Page() {
     // validation is done here
     // handle inpute data
     setHubLoader(true);
+    if (hubTitle.trim().length < 1) {
+      setNewHubError((previous) => ({
+        ...previous,
+        name: "Name cant be empty",
+      }));
+    }
+
+    if (hubDescription.trim().length < 1) {
+      setNewHubError((previous) => ({
+        ...previous,
+        description: "Description cant be empty",
+      }));
+    }
+
+    if (hubUrl.trim().length < 1) {
+      setNewHubError((previous) => ({
+        ...previous,
+        url: "URL cant be empty",
+      }));
+    }
+
+    if (
+      hubDescription.trim().length < 1 ||
+      hubUrl.trim().length < 1 ||
+      hubDescription.trim().length < 1
+    ) {
+      setHubLoader(false);
+      return;
+    }
+
     let data = {
       name: hubTitle,
       hubDescription: hubDescription,
       url: hubUrl,
     };
+
     let token = localStorage.getItem("token");
     let headers = {
       Authorization: `Bearer ${token}`,
     };
 
     let response = axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}hub/create`,
+      `${process.env.REACT_APP_BACKEND_API}hub/create`,
       data,
       { headers }
     );
@@ -207,7 +258,21 @@ export default function Page() {
       .catch((error) => {
         // Handle errors
         setHubLoader(false);
-        console.error("Error fetching data:", error);
+        Object.keys(error.response.data.message).map((keys) => {
+          if (keys == "name") {
+            setNewHubError((previous) => ({
+              ...previous,
+              name: error.response.data.message[keys][0],
+            }));
+          }
+
+          if (keys == "url") {
+            setNewHubError((previous) => ({
+              ...previous,
+              url: error.response.data.message[keys][0],
+            }));
+          }
+        });
       });
   };
 
@@ -244,21 +309,30 @@ export default function Page() {
   };
 
   const createCategory = async () => {
-    setCreateCategoryLoader(true);
-    let data = {
-      name: title,
-      hub_id: localStorage.getItem("hub"),
-    };
-    setLoader(true);
-    // after showing loader fetch every hub content
-    let response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}create-category`,
-      data
-    );
+    let creationStatus = true;
 
-    if (response.data.status == "success") {
-      setCreateCategoryLoader(false);
-      window.location.reload();
+    if (title.trim().length < 1) {
+      creationStatus = false;
+      setCatTititleError(true);
+    }
+
+    if (creationStatus) {
+      setCreateCategoryLoader(true);
+      let data = {
+        name: title,
+        hub_id: localStorage.getItem("hub"),
+      };
+      setLoader(true);
+      // after showing loader fetch every hub content
+      let response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_API}create-category`,
+        data
+      );
+
+      if (response.data.status == "success") {
+        setCreateCategoryLoader(false);
+        window.location.reload();
+      }
     }
   };
 
@@ -283,19 +357,21 @@ export default function Page() {
           if (item.name == "content") {
             newHubDetails["content"] = item;
           }
+          if (item.name == "topten") {
+            newHubDetails["topten"] = item;
+          }
           if (item.name == "category") {
             newHubDetails["category"] = item;
           }
-          if (item.name == "backgound") {
-            newHubDetails["backgound"] = item;
+          if (item.name == "background") {
+            newHubDetails["background"] = item;
           }
-          if (item.name == "backgound") {
-            newHubDetails["backgound"] = item;
+          if (item.name == "background") {
+            newHubDetails["background"] = item;
           }
           if (item.name == "registration") {
             newHubDetails["registration"] = item;
           }
-          console.log(newHubDetails);
         });
         newHubDetails["title"] = details.name;
         newHubDetails["description"] = details.description;
@@ -308,7 +384,7 @@ export default function Page() {
 
     // lets have a 3 seconsd delay for info to set
     let response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}category-content/${id}`
+      `${process.env.REACT_APP_BACKEND_API}category-content/${id}`
     );
 
     if (response.data.status == "success") {
@@ -330,7 +406,7 @@ export default function Page() {
       case "pdf":
         return (
           <iframe
-            src={`${process.env.NEXT_PUBLIC_DOCUMENTS}public${content}`}
+            src={`${process.env.REACT_APP_DOCUMENTS}/public${content}`}
             //src={"https://research.google.com/pubs/archive/44678.pdf"}
             allowFullScreen
             className="w-[100%] h-[400px]"
@@ -345,7 +421,7 @@ export default function Page() {
           return (
             <ReactPlayer
               width={"100%"}
-              url={`${process.env.NEXT_PUBLIC_DOCUMENTS}public${content}`}
+              url={`${process.env.REACT_APP_DOCUMENTS}/public${content}`}
               controls={true}
             />
           );
@@ -358,7 +434,7 @@ export default function Page() {
     setDeleteLoader(true);
     try {
       let response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_API}content/delete/${viewSelectedContents.id}`,
+        `${process.env.REACT_APP_BACKEND_API}content/delete/${viewSelectedContents.id}`,
         {}
       );
       if (response.data.satus == "success") {
@@ -370,8 +446,9 @@ export default function Page() {
       } else {
         setDeleteLoader(false);
         setOpenDeleteContent(false);
-        console.log("something went wrong");
       }
+      //setCreatedCounter((previousState) => previousState + 1);
+      window.location.reload();
     } catch (e) {
       setDeleteLoader(false);
       setOpenDeleteContent(false);
@@ -381,11 +458,84 @@ export default function Page() {
     //response.catch()
   };
 
+  const setCreated = () => {
+    window.location.reload();
+  };
+
+  const updateHubSettings = async (id) => {
+    let data = await axios
+      .get(`${process.env.REACT_APP_BACKEND_API}gethubsettings/${id}`)
+      .then(async (res) => {
+        let newHubDetails = {};
+        await res.data.data.map((item) => {
+          if (item.name == "logo") {
+            newHubDetails["logo"] = item;
+          }
+          if (item.name == "menu") {
+            newHubDetails["menu"] = item;
+          }
+          if (item.name == "sportlight") {
+            newHubDetails["sportlight"] = item;
+          }
+          if (item.name == "search") {
+            newHubDetails["search"] = item;
+          }
+          if (item.name == "content") {
+            newHubDetails["content"] = item;
+          }
+          if (item.name == "category") {
+            newHubDetails["category"] = item;
+          }
+          if (item.name == "background") {
+            newHubDetails["background"] = item;
+          }
+          if (item.name == "background") {
+            newHubDetails["background"] = item;
+          }
+          if (item.name == "registration") {
+            newHubDetails["registration"] = item;
+          }
+          if (item.name == "topten") {
+            newHubDetails["topten"] = item;
+          }
+        });
+
+        //details.settings = newHubDetails;
+        let savedHubDetails = JSON.parse(localStorage.getItem("hubDetails"));
+        newHubDetails["title"] = savedHubDetails.settings.title;
+        newHubDetails["description"] = savedHubDetails.settings.description;
+        savedHubDetails["settings"] = newHubDetails;
+
+        localStorage.setItem("hubDetails", JSON.stringify(savedHubDetails));
+        setSettings(savedHubDetails.settings);
+        window.location.reload();
+      })
+      .catch((error) => {});
+
+    // use content to update both state and local storage
+  };
+
   const showRegistrationSettings = () => {
     setRegistrationSettings(true);
   };
   return (
     <main className="flex">
+      <Snackbar
+        open={showSnack}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        autoHideDuration={6000}
+        onClose={() => setShowSnack(false)}
+        message="Note archived"
+      >
+        <Alert
+          onClose={() => setShowSnack(false)}
+          severity="success"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          This is a success Alert inside a Snackbar!
+        </Alert>
+      </Snackbar>
       <AppModal
         open={registrationSettings}
         handleClose={() => setRegistrationSettings(false)}
@@ -411,10 +561,18 @@ export default function Page() {
             </div>
             <div className="flex justify-between">
               <div className="w-[45%]">
+                {newHubError.name}
                 <TextInput
+                  error={newHubError.name.length > 0 ? true : false}
                   id="outlined-multiline-flexible"
                   label="Hub Name"
-                  onChange={(e) => setHubTitle(e.target.value)}
+                  onChange={(e) => {
+                    setHubTitle(e.target.value);
+                    setNewHubError((previous) => ({
+                      ...previous,
+                      name: "",
+                    }));
+                  }}
                   inputProps={{
                     style: { fontFamily: "Arial", color: "white" },
                   }}
@@ -430,38 +588,61 @@ export default function Page() {
                   }}
                 />
               </div>
-              <div className="w-[45%] flex ">
-                <div className="w-[65%]">
-                  <TextInput
-                    id="outlined-multiline-flexible"
-                    label="Hub Url"
-                    onChange={(e) => setHubUrl(e.target.value)}
-                    inputProps={{
-                      style: { fontFamily: "Arial", color: "white" },
+              <div className="w-[45%] ">
+                <div>{newHubError.url}</div>
+                <div className="w-[100%] flex ">
+                  <div className="w-[65%]">
+                    <TextInput
+                      id="outlined-multiline-flexible"
+                      error={newHubError.url.length > 0 ? true : false}
+                      label="Hub Url Name"
+                      onChange={(e) => {
+                        setHubUrl(e.target.value);
+                        setNewHubError((previous) => ({
+                          ...previous,
+                          url: "",
+                        }));
+                      }}
+                      inputProps={{
+                        style: { fontFamily: "Arial", color: "white" },
+                      }}
+                      style={{ flex: 1, color: "white" }}
+                      maxRows={10}
+                      sx={{
+                        "& .MuiFormLabel-root": {
+                          color: "white",
+                        },
+                        "& .MuiFormLabel-root.Mui-focused": {
+                          color: "white",
+                        },
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      borderColor: newHubError.url.length > 0 ? "red" : "#fff",
                     }}
-                    style={{ flex: 1, color: "white" }}
-                    maxRows={10}
-                    sx={{
-                      "& .MuiFormLabel-root": {
-                        color: "white",
-                      },
-                      "& .MuiFormLabel-root.Mui-focused": {
-                        color: "white",
-                      },
-                    }}
-                  />
-                </div>
-                <div className="grid justify-center content-center w-[35%] border-l-[0px] border-[1px] rounded mt-2 h-[55px] border-solid border-[#fff]">
-                  <div>.Hubeei.com</div>
+                    className="grid justify-center content-center w-[35%] border-l-[0px] border-[1px] rounded-r mt-2 h-[56px] border-solid"
+                  >
+                    <div>.Hubeei.com</div>
+                  </div>
                 </div>
               </div>
             </div>
             <div>
               <div>
+                {newHubError.description}
                 <TextInput
+                  error={newHubError.description.length > 0 ? true : false}
                   id="outlined-multiline-flexible"
                   label="Description"
-                  onChange={(e) => setHubDescription(e.target.value)}
+                  onChange={(e) => {
+                    setHubDescription(e.target.value);
+                    setNewHubError((previous) => ({
+                      ...previous,
+                      description: "",
+                    }));
+                  }}
                   multiline
                   inputProps={{
                     style: { fontFamily: "Arial", color: "white" },
@@ -507,6 +688,7 @@ export default function Page() {
                 accept="image/*"
                 handleOnChange={(e) => setLogoValue(e.target.files[0])}
                 text="Chose Your Logo"
+                error={logoError}
               />
             </div>
           </div>
@@ -561,7 +743,7 @@ export default function Page() {
         </DialogActions>
       </Dialog>
       <AppModal open={open} handleClose={handleClose}>
-        <CategoryContent categoryId={categoryId} />
+        <CategoryContent categoryId={categoryId} created={setCreated} />
       </AppModal>
       <AppModal
         open={updateContentState}
@@ -602,7 +784,7 @@ export default function Page() {
               </div>
             )}
           </div>
-          <div className="mt-4">
+          <div className="mt-4 ">
             <div>
               <h1 className="mt-2 text-[#DCD427] text-[28px] font-roboto">
                 Description
@@ -623,13 +805,16 @@ export default function Page() {
             <div>
               <h1 className="text-[40px] mb-10 text-center">Select Your Hub</h1>
             </div>
-            <div className="flex justify-between">
-              {hubs.map((value) => (
-                <DashboardHubs
-                  title={value.name}
-                  action={() => action(value.id, value)}
-                />
-              ))}
+            <div className="flex gap-4 justify-between flex-wrap">
+              {hubs.map((value) => {
+                return (
+                  <DashboardHubs
+                    title={value.name}
+                    action={() => action(value.id, value)}
+                    image={value?.settings[0]?.value}
+                  />
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -646,6 +831,7 @@ export default function Page() {
               fullWidth
               id="outlined-multiline-flexible"
               label="Title"
+              error={catTititleError}
               inputProps={{
                 style: { fontFamily: "Arial", color: "white" },
               }}
@@ -692,6 +878,7 @@ export default function Page() {
                   setting={settings}
                   updateLogo={updateLogoModal}
                   showRegistrationSettings={showRegistrationSettings}
+                  updateSettingsRefresh={updateHubSettings}
                 />
               </div>
             ) : null}
@@ -706,7 +893,7 @@ export default function Page() {
                   ))
                 : null}
             </div>
-            <div>
+            <div className="mt-4 h-[59vh] overflow-auto">
               {categories.length > 0 ? (
                 <KanbanBoard
                   categories={categories}
@@ -729,19 +916,28 @@ export default function Page() {
                 </div>
               )}
             </div>
+
+            {categories.length > 0 ? (
+              <div
+                id="fabs"
+                style={fabStyle}
+                aria-label="add"
+                className="bg-[#DCD427] relative flex flex-column h-[50px] justify-center rounded "
+              >
+                <div className="bg-[#000] absolute bottom-[15px] rounded-full h-[100px] w-[100px] flex  justify-center items-center ">
+                  <Tooltip title="Create Category">
+                    <AddCircleRoundedIcon
+                      onClick={() => handleOpenCategory()}
+                      className=" text-[60px] text-[#DCD427] cursor-pointer "
+                    />
+                  </Tooltip>
+                </div>
+                <div className="mt-7 text-[#000] font-bold">
+                  Create Category
+                </div>
+              </div>
+            ) : null}
           </div>
-          {categories.length > 0 ? (
-            <div
-              id="fabs"
-              style={fabStyle}
-              aria-label="add"
-              onClick={() => handleOpenCategory()}
-            >
-              <Tooltip title="Create Category" className="bg-[#000]">
-                <AddCircleRoundedIcon className="text-[50px] text-[#DCD427] cursor-pointer " />
-              </Tooltip>
-            </div>
-          ) : null}
         </div>
       ) : null}
     </main>

@@ -1,14 +1,12 @@
-"use client";
-import Image from "next/image";
-import AppButtons from "../components/AppButtons.js";
-import bg from "../../public/images/headerimage.png";
-import footer from "../../public/images/footer.png";
-import step1 from "../../public/images/step1.png";
-import step2 from "../../public/images/step2.png";
-import step3 from "../../public/images/step3.png";
-import logo from "../../public/images/logo.jpeg";
-import ActionButton from "@/components/ActionButton.jsx";
-import FlipCard from "@/components/FlipCard.jsx";
+import AppButtons from "./components/AppButtons.js";
+import bg from "./images/headerimage.png";
+import footer from "./images/footer.png";
+import step1 from "./images/step1.png";
+import step2 from "./images/step2.png";
+import step3 from "./images/step3.png";
+import logo from "./images/logo.jpeg";
+import ActionButton from "./components/ActionButton.jsx";
+import FlipCard from "./components/FlipCard.jsx";
 import { useState, useEffect } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -24,17 +22,20 @@ import ListItem from "@mui/joy/ListItem";
 import ListItemDecorator from "@mui/joy/ListItemDecorator";
 import Check from "@mui/icons-material/Check";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
-import AppModal from "@/components/modalcomponent/AppModal.js";
-import TextInput from "@/components/InputComponent/TextInput.jsx";
+import AppModal from "./components/modalcomponent/AppModal.js";
+import TextInput from "./components/InputComponent/TextInput.jsx";
 import Axios from "axios";
 import CircularProgress from "@mui/material/CircularProgress";
 import CheckIcon from "@mui/icons-material/Check";
-import { useRouter } from "next/navigation";
-export default function Home() {
+import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+//let navigate = useNavigate();
+
+export default function App() {
   const [isFlipped1, setIsFlipped1] = useState(false);
   const [isFlipped2, setIsFlipped2] = useState(false);
   const [isFlipped3, setIsFlipped3] = useState(false);
-  const router = useRouter();
+  const router = useNavigate();
   const [open, setOpen] = useState(false);
   const [loader, setLoader] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -62,7 +63,7 @@ export default function Home() {
     // check if a user is logged in and redirect the user to the dashboard page
     let token = localStorage.getItem("token");
     if (token != undefined) {
-      router.push("/dashboard");
+      router("/dashboard");
     }
   };
 
@@ -115,7 +116,7 @@ export default function Home() {
       };
       try {
         const response = await Axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_API}register`,
+          `${process.env.REACT_APP_BACKEND_API}register`,
           data
         );
         if (response.data.status == "success") {
@@ -150,9 +151,9 @@ export default function Home() {
     setOpen(false);
   };
 
-  const handleOpenCategory = () => {
-    setOpenCategory(true);
-  };
+  // const handleOpenCategory = () => {
+  //   setOpenCategory(true);
+  // };
 
   const handleLogin = async () => {
     // validate data and then perform login
@@ -165,7 +166,7 @@ export default function Home() {
       };
       try {
         const response = await Axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_API}login`,
+          `${process.env.REACT_APP_BACKEND_API}login`,
           data
         );
         if (response.data.status == "success") {
@@ -174,7 +175,7 @@ export default function Home() {
           localStorage.setItem("userData", JSON.stringify(response.data.data));
           console.log("abc", response.data.data.token);
 
-          router.push("/dashboard");
+          router("/dashboard");
         } else {
           //handle the error here
         }
@@ -188,7 +189,7 @@ export default function Home() {
         <div>
           <div className="flex justify-center">
             <div>
-              <Image src={logo.src} width={200} height={200} />
+              <img src={logo.src} width={200} height={200} />
             </div>
           </div>
           <div className="mt-4">
@@ -356,7 +357,7 @@ export default function Home() {
                 <div className="w-[65%]">
                   <TextInput
                     id="outlined-multiline-flexible"
-                    label="Hub Url"
+                    label="Hub Url Name"
                     onChange={(e) => handleInputes(e, "huburl")}
                     inputProps={{
                       style: { fontFamily: "Arial", color: "white" },
@@ -442,7 +443,7 @@ export default function Home() {
       <div className="flex h-[90vh]">
         <div className="w-[50%]">
           <div>
-            <Image src={logo.src} width={200} height={200} />
+            <img src={logo.src} width={200} height={200} />
           </div>
           <div className="grid justify-items-center  content-center h-[80%]  ">
             <div className="w-[60%]">

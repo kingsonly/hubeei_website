@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import FlipCard from "@/components/FlipCard.jsx";
+import FlipCard from "../../components/FlipCard.jsx";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
-import step1 from "../../../public/images/step1.png";
+//import step1 from "../../../public/images/step1.png";
 import ActionButton from "../ActionButton";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -15,6 +15,7 @@ import KanBanCard from "./KanbanCard";
 import axios from "axios";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
+import { Tooltip } from "@mui/material";
 
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list["content"]);
@@ -133,14 +134,14 @@ export default function KanbanBoard({
 
   const changeContentPosition = async (data) => {
     let response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}content/change-content-position`,
+      `${process.env.REACT_APP_BACKEND_API}content/change-content-position`,
       { data: data }
     );
 
     if (response.data.status == "success") {
-      alert("done");
+      console.log("done");
     } else {
-      alert("error");
+      console.log("error");
     }
   };
 
@@ -148,6 +149,7 @@ export default function KanbanBoard({
     <div>
       <div className="">
         <DragDropContext onDragEnd={onDragEnd}>
+          {console.log("contents", state)}
           {state.map((el, ind) => {
             return (
               <Droppable
@@ -157,61 +159,100 @@ export default function KanbanBoard({
               >
                 {(provided, snapshot) => {
                   return (
-                    <div>
-                      <div className="w-[100%] border">
-                        <Typography variant="h3" className="font-roboto">
+                    <div className="min-h-[300px] ">
+                      <div className="w-[100%] ">
+                        <Typography
+                          variant="h4"
+                          className="font-roboto uppercase"
+                        >
                           {el.name}
                         </Typography>
                       </div>
 
-                      <div className="flex  ">
+                      <div className="flex ">
                         <div className="w-[20%] flex items-center justify-center">
                           <div>
                             <div
                               className="flex justify-center  mt-3"
                               onClick={() => createNewContent(el.id)}
                             >
-                              <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
+                              <Tooltip
+                                className="capitalize"
+                                title={`Create A New ${el.name} Content`}
+                              >
+                                <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
+                              </Tooltip>
                             </div>
                           </div>
                         </div>
-
-                        <div
-                          ref={provided.innerRef}
-                          style={getListStyle(snapshot.isDraggingOver)}
-                          {...provided.droppableProps}
-                          className="mb-10 overflow-x-auto "
-                        >
-                          {el.content.map((item, index) => {
-                            return (
-                              <Draggable
-                                key={`${item.id}`}
-                                draggableId={`${item.id}`}
-                                index={index}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    style={getItemStyle(
-                                      snapshot.isDragging,
-                                      provided.draggableProps.style
-                                    )}
-                                  >
-                                    <KanBanCard
-                                      item={item}
-                                      viewContents={() => viewContent(item)}
-                                      updateContent={() => updateContent(item)}
-                                      deleteContent={() => deleteContent(item)}
-                                    />
+                        {el.content.length > 0 ? (
+                          <div
+                            ref={provided.innerRef}
+                            style={getListStyle(snapshot.isDraggingOver)}
+                            {...provided.droppableProps}
+                            className="mb-10 overflow-x-auto bg-[transparent]  min-h-[250px] "
+                          >
+                            {el.content.map((item, index) => {
+                              return (
+                                <Draggable
+                                  key={`${item.id}`}
+                                  draggableId={`${item.id}`}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      style={getItemStyle(
+                                        snapshot.isDragging,
+                                        provided.draggableProps.style
+                                      )}
+                                    >
+                                      <KanBanCard
+                                        item={item}
+                                        viewContents={() => viewContent(item)}
+                                        updateContent={() =>
+                                          updateContent(item)
+                                        }
+                                        deleteContent={() =>
+                                          deleteContent(item)
+                                        }
+                                      />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              );
+                            })}
+                            {provided.placeholder}
+                          </div>
+                        ) : (
+                          <div
+                            ref={provided.innerRef}
+                            style={getListStyle(snapshot.isDraggingOver)}
+                            {...provided.droppableProps}
+                            className="mb-10 overflow-x-auto bg-[transparent]  min-h-[250px] "
+                            onClick={() => createNewContent(el.id)}
+                          >
+                            <div class="relative w-full h-full">
+                              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <span class="text-gray-300 text-2xl font-bold italic opacity-50">
+                                  Drag Content Here{" "}
+                                  <span className="bg-[]"> OR </span>
+                                  <span>Click button</span>
+                                  <div className="flex justify-center  mt-3">
+                                    <Tooltip
+                                      className="capitalize"
+                                      title={`Create A New ${el.name} Content`}
+                                    >
+                                      <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
+                                    </Tooltip>
                                   </div>
-                                )}
-                              </Draggable>
-                            );
-                          })}
-                          {provided.placeholder}
-                        </div>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

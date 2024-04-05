@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Logo from "../../../public/images/logo.jpeg";
-import Logoempty from "../../../public/images/logoplaceholder-removebg-preview.png";
-import Image from "next/image";
+import Logo from "../../images/logo.jpeg";
+import Logoempty from "../../images/logoplaceholder-removebg-preview.png";
 import { Typography } from "@mui/material";
 import ActionButton from "../ActionButton";
 import Switch from "@mui/material/Switch";
@@ -26,6 +25,7 @@ const Sidebar = ({
   showSuscribers,
   setting,
   updateLogo,
+  updateSettingsRefresh,
 }) => {
   const [showHub, setShowHub] = useState(false);
   const [showHubSettings, setShowHubSettings] = useState(false);
@@ -35,7 +35,7 @@ const Sidebar = ({
   );
   const [menu, setMenu] = useState(parseInt(setting.menu.value));
   const [search, setSearch] = useState(parseInt(setting.search.value));
-  const [bgColor, setBgColor] = useState(setting.backgound.value);
+  const [bgColor, setBgColor] = useState(setting.background.value);
   const [bgPicker, setBgPicker] = useState(false);
   const [categoryPicker, setCategoryPicker] = useState(false);
   const [contentPicker, setContentPicker] = useState(false);
@@ -44,7 +44,9 @@ const Sidebar = ({
   const [registration, setRegistration] = useState(
     parseInt(setting.registration.value)
   );
+  const [topten, setTopten] = useState(parseInt(setting.topten.value));
   const [registrationData, setRegistrationData] = useState();
+  const [url, setUrl] = useState("");
 
   const CustomSwitch = styled(Switch)(() => ({
     "& .MuiSwitch-track": {
@@ -75,6 +77,8 @@ const Sidebar = ({
   }));
 
   useEffect(() => {
+    let getHubDetails = JSON.parse(localStorage.getItem("hubDetails"));
+    setUrl(getHubDetails.url);
     console.log("i am settings ", settings);
   }, []);
 
@@ -85,8 +89,8 @@ const Sidebar = ({
   const updateSettings = async (e, type) => {
     switchAction(type, e);
     let value;
-    if (type == "backgound" || type == "content" || type == "category") {
-      if (type == "backgound") {
+    if (type == "background" || type == "content" || type == "category") {
+      if (type == "background") {
         setBgColor(e);
       }
       if (type == "content") {
@@ -124,11 +128,12 @@ const Sidebar = ({
     }
 
     let response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}dashboard/hubs/settings/update`,
+      `${process.env.REACT_APP_BACKEND_API}dashboard/hubs/settings/update`,
       data
     );
     if (response.data.status == "success") {
       switchAction(type, e);
+      updateSettingsRefresh(hubId);
     } else {
     }
   };
@@ -146,6 +151,9 @@ const Sidebar = ({
         break;
       case "registration":
         setRegistrationState(e);
+        break;
+      case "topten":
+        setTopten(e);
         break;
     }
   };
@@ -263,7 +271,7 @@ const Sidebar = ({
       <div data-testid="sidebarlinks">
         <div className=" shadow-[#DCD427] font-roboto shadow-2xl pb-[50px] overflow-auto flex flex-col h-screen fixed top-0 left-0 w-[273px] gap-y-[10px]">
           <div className="flex items-center justify-center bg-black ">
-            <Image src={Logo} alt="logo" width={200} className="mt-2" />
+            <img src={Logo} alt="logo" width={200} className="mt-2" />
           </div>
           <div
             style={{
@@ -285,13 +293,13 @@ const Sidebar = ({
                 <>
                   <div className="show-inactive p-2 flex justify-center text-center ">
                     {settings.logo.value.trim().length != 0 ? (
-                      <Image
-                        src={`${process.env.NEXT_PUBLIC_DOCUMENTS}public${settings.logo.value}`}
+                      <img
+                        src={`${process.env.REACT_APP_DOCUMENTS}/public${settings.logo.value}`}
                         width={100}
                         height={100}
                       />
                     ) : (
-                      <Image
+                      <img
                         src={Logoempty}
                         alt="logo"
                         width="100"
@@ -304,9 +312,14 @@ const Sidebar = ({
                       {settings.title}
                     </Typography>
                   </div>
-                  <div className=" p-2 h-[100px] ">
+                  <div className=" p-2 max-h-[100px] ">
                     <Typography variant="h6" className="text-[#DCD427]">
                       {settings.description}
+                    </Typography>
+                  </div>
+                  <div className=" p-2 max-h-[100px] ">
+                    <Typography variant="h6" className="text-[#DCD427]">
+                      {`https://${url}.${process.env.REACT_APP_ROUTE}`}
                     </Typography>
                   </div>
                 </>
@@ -393,6 +406,27 @@ const Sidebar = ({
                           }`}
                         >
                           Spotlight
+                        </Typography>
+                      }
+                    />
+                  </div>
+                  <div>
+                    <FormControlLabel
+                      control={
+                        <CustomSwitch
+                          checked={topten}
+                          onChange={(e) => updateSettings(e, "topten")}
+                          name="Top Ten"
+                        />
+                      }
+                      label={
+                        <Typography
+                          variant="h6"
+                          className={`${
+                            topten == 0 ? "text-[#ccc]" : "text-[#DCD427]"
+                          }`}
+                        >
+                          Top Ten
                         </Typography>
                       }
                     />
@@ -491,7 +525,7 @@ const Sidebar = ({
                       <div className="mt-4 w-[100%] flex justify-center">
                         <HexColorPicker
                           color={bgColor}
-                          onChange={(e) => updateSettings(e, "backgound")}
+                          onChange={(e) => updateSettings(e, "background")}
                         />
                       </div>
                     ) : null}
@@ -534,6 +568,23 @@ const Sidebar = ({
                   </div>
                 </div>
               ) : null}
+            </div>
+            <div
+              style={{
+                height: "64px",
+                display: "flex",
+                border: "solid 1px #fff",
+              }}
+            >
+              <div
+                className=" ring ring-gray-300 text-[#7E7E7E] cursor-pointer flex justify-center items-center  w-[100%] "
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.reload();
+                }}
+              >
+                <span className="">Logout</span>
+              </div>
             </div>
           </div>
         </div>

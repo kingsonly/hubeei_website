@@ -13,7 +13,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import Switch from "@mui/material/Switch";
 import { styled } from "@mui/material/styles";
 
-export default function Engagement({ className, style, data }) {
+export default function Engagement({
+  className,
+  style,
+  data,
+  error,
+  updateError,
+  updateEngError,
+}) {
   const [questions, setQuestions] = useState([]);
   const [engagementType, setEngagementType] = useState("");
   const [engagementOptionType, setEngagementOptionType] = useState("");
@@ -23,6 +30,13 @@ export default function Engagement({ className, style, data }) {
   useEffect(() => {
     mainInit();
   }, [initMain]);
+
+  useEffect(() => {
+    if (updateEngError.length > 0) {
+      console.log(updateEngError);
+    }
+  }, [updateEngError]);
+
   const CustomSwitch = styled(Switch)(() => ({
     "& .MuiSwitch-track": {
       width: "100%", // or specify the width you want
@@ -58,9 +72,11 @@ export default function Engagement({ className, style, data }) {
       engagementType: engagementType,
       optionType: engagementOptionType,
       display: "hide",
-      answers: [{ answer: "", status: false }],
+      error: false,
+      answers: [{ answer: "", status: false, error: false }],
     });
     setQuestions(newQuestion);
+    data(newQuestion);
   };
   const mainInit = () => {
     if (initMain) {
@@ -70,14 +86,21 @@ export default function Engagement({ className, style, data }) {
         engagementType: engagementType,
         optionType: engagementOptionType,
         display: "hide",
-        answers: [{ answer: "", status: false }],
+        error: false,
+        answers: [{ answer: "", status: false, error: false }],
       });
       setQuestions(newQuestion);
+      data(newQuestion);
       setInitMain(false);
     }
   };
 
+  // const updateQandAError = (data) => {
+  //   setQuestions(data);
+  // };
+
   const selectOption = (e) => {
+    updateError(false);
     e = e.target.value;
     setEngagementType(e);
     setOptionTypeSelector(false);
@@ -95,6 +118,7 @@ export default function Engagement({ className, style, data }) {
         setEngagementOptionType("single");
         break;
     }
+
     setInitMain(true);
   };
 
@@ -111,6 +135,7 @@ export default function Engagement({ className, style, data }) {
 
   const changQuestionEntities = (index, type, e) => {
     let newQuestion = [...questions];
+    newQuestion[index].error = false;
     switch (type) {
       case "question":
         newQuestion[index].question = e.target.value;
@@ -162,7 +187,7 @@ export default function Engagement({ className, style, data }) {
   };
 
   const addAnswer = (index) => {
-    let option = { answer: "", status: false };
+    let option = { answer: "", status: false, error: false };
     let newAnswer = [...questions];
     if (newAnswer[index].answers.length < 4) {
       newAnswer[index].answers.push(option);
@@ -176,10 +201,10 @@ export default function Engagement({ className, style, data }) {
     let value = e.target.value;
     let question = [...questions];
     // update the answer key
+    question[index].answers[optionIndex].error = false;
     question[index].answers[optionIndex].answer = value;
     setQuestions(question);
     data(question);
-    console.log("lets investigate", question);
   };
 
   const option = [
@@ -196,6 +221,7 @@ export default function Engagement({ className, style, data }) {
           type="select"
           options={option}
           label="Engagement Type"
+          error={error}
           onChange={(e) => selectOption(e)}
         />
       </div>
@@ -222,6 +248,7 @@ export default function Engagement({ className, style, data }) {
                         }}
                         style={{ flex: 1, color: "white" }}
                         maxRows={10}
+                        error={item.error}
                         sx={{
                           "& .MuiFormLabel-root": {
                             color: "white",
@@ -345,6 +372,7 @@ export default function Engagement({ className, style, data }) {
                                       e
                                     )
                                   }
+                                  error={option.error}
                                   label="Answer"
                                   inputProps={{
                                     style: {
@@ -367,7 +395,7 @@ export default function Engagement({ className, style, data }) {
                               <div className="">
                                 {item.optionType == "single" ? (
                                   <div>
-                                    <Typography>Correct / Wrong</Typography>
+                                    <Typography>Wrong / Correct</Typography>
                                     <CustomSwitch
                                       checked={option.status}
                                       onChange={(e) =>
@@ -382,7 +410,7 @@ export default function Engagement({ className, style, data }) {
                                         id="demo-row-radio-buttons-group-label"
                                         className="text-white"
                                       >
-                                        Correct / Wrong
+                                        Wrong / Correct
                                       </FormLabel>
                                       <RadioGroup
                                         row

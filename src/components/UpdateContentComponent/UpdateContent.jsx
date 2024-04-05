@@ -36,7 +36,7 @@ export default function UpdateContent({ data }) {
 
       await axios
         .post(
-          `${process.env.NEXT_PUBLIC_BACKEND_API}content/update/${data.id}`,
+          `${process.env.REACT_APP_BACKEND_API}content/update/${data.id}`,
           formData,
           {
             headers: {
