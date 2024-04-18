@@ -68,7 +68,7 @@ export default function App() {
   };
 
   const headerStyle = {
-    backgroundImage: `url('${bg.src}') `,
+    backgroundImage: `url('${bg}') `,
     backgroundSize: "100% 90%",
   };
   const footerStyle = {
@@ -183,13 +183,14 @@ export default function App() {
       } catch (error) {}
     }
   };
+
   return (
     <main>
       <AppModal open={openLogin} handleClose={handleCloseLogin}>
         <div>
           <div className="flex justify-center">
             <div>
-              <img src={logo.src} width={200} height={200} />
+              <img src={logo} width={200} height={200} />
             </div>
           </div>
           <div className="mt-4">
@@ -440,12 +441,13 @@ export default function App() {
           </div>
         )}
       </AppModal>
+
       <div className="flex h-[90vh]">
         <div className="w-[50%]">
           <div>
-            <img src={logo.src} width={200} height={200} />
+            <img src={logo} width={200} height={200} />
           </div>
-          <div className="grid justify-items-center  content-center h-[80%]  ">
+          <div className="grid   content-center h-[80%]  ">
             <div className="w-[60%]">
               <h1 className="text-[35px] text-bold text-[#ccc]">
                 HELP PEOPLE FIND YOUR CONTENT
@@ -483,7 +485,7 @@ export default function App() {
         </div>
         <div className="w-[50%] bg-no-repeat" style={headerStyle}></div>
       </div>
-      <div className="w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#DCD427] after:rounded after:mt-2  after:h-[5px] after:w-[200px]">
+      <div className="mt-8 w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#DCD427] after:rounded after:mt-2  after:h-[5px] after:w-[200px]">
         <h1 className="text-[45px] text-bold text-[#fff]">
           Three easy
           <span class="before:block before:absolute before:-inset-1 before:ml-2  before:mr-2  before:bg-[#DCD427] relative ">

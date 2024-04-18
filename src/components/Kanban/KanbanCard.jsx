@@ -50,7 +50,7 @@ export default function KanBanCard({
         <CardMedia
           component="img"
           sx={{ height: 200 }}
-          image={`${process.env.REACT_APP_DOCUMENTS}/public${item.thumbnail}`}
+          image={`${process.env.REACT_APP_DOCUMENTS}${item.thumbnail}`}
         />
         <CardContent
           style={{

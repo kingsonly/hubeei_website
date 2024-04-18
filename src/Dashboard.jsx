@@ -406,7 +406,7 @@ export default function Dashboard() {
       case "pdf":
         return (
           <iframe
-            src={`${process.env.REACT_APP_DOCUMENTS}/public${content}`}
+            src={`${process.env.REACT_APP_DOCUMENTS}${content}`}
             //src={"https://research.google.com/pubs/archive/44678.pdf"}
             allowFullScreen
             className="w-[100%] h-[400px]"
@@ -421,7 +421,7 @@ export default function Dashboard() {
           return (
             <ReactPlayer
               width={"100%"}
-              url={`${process.env.REACT_APP_DOCUMENTS}/public${content}`}
+              url={`${process.env.REACT_APP_DOCUMENTS}${content}`}
               controls={true}
             />
           );
@@ -438,7 +438,7 @@ export default function Dashboard() {
         {}
       );
       if (response.data.satus == "success") {
-        console.log("item hase being removed");
+        console.log("item has being removed");
         let hub = localStorage.getItem("hub");
         action(parseInt(hub));
         setDeleteLoader(false);
@@ -515,8 +515,25 @@ export default function Dashboard() {
     // use content to update both state and local storage
   };
 
-  const showRegistrationSettings = () => {
-    setRegistrationSettings(true);
+  const showRegistrationSettings = (data) => {
+    // get hub id fromthe local storage
+    let hub = localStorage.getItem("hub");
+    // check the status of the registration
+    axios
+      .get(`${process.env.REACT_APP_BACKEND_API}registion-status/${hub}`)
+      .then((res) => {
+        console.log(res.data);
+        if (res.data.data.status == 0) {
+          // show modal
+          setRegistrationSettings(true);
+        } else {
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    //console.log(data);
+    //setRegistrationSettings(true);
   };
   return (
     <main className="flex">
@@ -928,7 +945,8 @@ export default function Dashboard() {
                   <Tooltip title="Create Category">
                     <AddCircleRoundedIcon
                       onClick={() => handleOpenCategory()}
-                      className=" text-[60px] text-[#DCD427] cursor-pointer "
+                      className="text-[#DCD427] cursor-pointer "
+                      style={{ fontSize: "60px" }}
                     />
                   </Tooltip>
                 </div>

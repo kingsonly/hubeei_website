@@ -180,7 +180,10 @@ export default function KanbanBoard({
                                 className="capitalize"
                                 title={`Create A New ${el.name} Content`}
                               >
-                                <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
+                                <AddCircleRoundedIcon
+                                  style={{ fontSize: "40px" }}
+                                  className=" text-[#DCD427] cursor-pointer "
+                                />
                               </Tooltip>
                             </div>
                           </div>
@@ -236,18 +239,21 @@ export default function KanbanBoard({
                           >
                             <div class="relative w-full h-full">
                               <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <span class="text-gray-300 text-2xl font-bold italic opacity-50">
+                                <span class="text-gray-300 text-2xl font-bold italic opacity-25">
                                   Drag Content Here{" "}
                                   <span className="bg-[]"> OR </span>
-                                  <span>Click button</span>
-                                  <div className="flex justify-center  mt-3">
+                                  <span>Click </span>
+                                  <span className=" justify-center  mt-3">
                                     <Tooltip
                                       className="capitalize"
                                       title={`Create A New ${el.name} Content`}
                                     >
-                                      <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
+                                      <AddCircleRoundedIcon
+                                        style={{ fontSize: "40px" }}
+                                        className="text-[#DCD427] cursor-pointer "
+                                      />
                                     </Tooltip>
-                                  </div>
+                                  </span>
                                 </span>
                               </div>
                             </div>

@@ -118,10 +118,10 @@ const Sidebar = ({
     };
 
     if (type == "registration") {
-      setRegistrationData(data);
+      //setRegistrationData(data);
       // show setting modal
       if (e.target.checked == true) {
-        showRegistrationSettings();
+        showRegistrationSettings(data);
       }
 
       return;
@@ -294,7 +294,7 @@ const Sidebar = ({
                   <div className="show-inactive p-2 flex justify-center text-center ">
                     {settings.logo.value.trim().length != 0 ? (
                       <img
-                        src={`${process.env.REACT_APP_DOCUMENTS}/public${settings.logo.value}`}
+                        src={`${process.env.REACT_APP_DOCUMENTS}${settings.logo.value}`}
                         width={100}
                         height={100}
                       />

@@ -27,7 +27,7 @@ export default function DashboardHubs(props) {
           src={
             image.length < 1
               ? hubeeiLogo
-              : process.env.REACT_APP_DOCUMENTS + "/public" + image
+              : process.env.REACT_APP_DOCUMENTS + image
           }
           width="280"
           height="100"
