@@ -29,10 +29,12 @@ import CircularProgress from "@mui/material/CircularProgress";
 import CheckIcon from "@mui/icons-material/Check";
 import { useHistory } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { type } from "@testing-library/user-event/dist/type/index.js";
 //let navigate = useNavigate();
 
 export default function App() {
   const [isFlipped1, setIsFlipped1] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [isFlipped2, setIsFlipped2] = useState(false);
   const [isFlipped3, setIsFlipped3] = useState(false);
   const router = useNavigate();
@@ -157,30 +159,39 @@ export default function App() {
 
   const handleLogin = async () => {
     // validate data and then perform login
-
+    setLoginError("");
     if (!loader || loader) {
       setLoader(true);
       let data = {
         email: loginEmail,
         password: loginPassword,
       };
-      try {
-        const response = await Axios.post(
-          `${process.env.REACT_APP_BACKEND_API}login`,
-          data
-        );
-        if (response.data.status == "success") {
-          // save token and redirect to dashboard page
-          localStorage.setItem("token", response.data.data.token);
-          localStorage.setItem("userData", JSON.stringify(response.data.data));
-          console.log("abc", response.data.data.token);
 
-          router("/dashboard");
-        } else {
-          //handle the error here
-        }
-        setLoader(false);
-      } catch (error) {}
+      await Axios.post(`${process.env.REACT_APP_BACKEND_API}login`, data)
+        .then((response) => {
+          if (response.data.status == "success") {
+            // save token and redirect to dashboard page
+            localStorage.setItem("token", response.data.data.token);
+            localStorage.setItem(
+              "userData",
+              JSON.stringify(response.data.data)
+            );
+            console.log("abc", response.data.data.token);
+
+            router("/dashboard");
+          } else {
+            //handle the error here
+            alert(response.data.status);
+          }
+        })
+        .catch((error) => {
+          if (typeof error.response.data.data == "undefined") {
+            setLoginError("wrong email or password");
+          } else {
+            setLoginError("Email and Password cant be empty");
+          }
+        });
+      setLoader(false);
     }
   };
 
@@ -192,6 +203,9 @@ export default function App() {
             <div>
               <img src={logo} width={200} height={200} />
             </div>
+          </div>
+          <div className="flex justify-center text-[red] mt-4">
+            {loginError}
           </div>
           <div className="mt-4">
             <TextInput
@@ -237,9 +251,22 @@ export default function App() {
           <div className="flex justify-end">
             <div>
               <div>forgoten password</div>
-              <ActionButton handleClick={handleLogin} withBG={true}>
-                Login
-              </ActionButton>
+              <div>
+                {loader ? (
+                  <ActionButton withBG={false}>
+                    <div className="flex">
+                      <div> Login</div>
+                      <div>
+                        <CircularProgress className="text-[#000]" size={30} />
+                      </div>
+                    </div>
+                  </ActionButton>
+                ) : (
+                  <ActionButton handleClick={handleLogin} withBG={true}>
+                    Login
+                  </ActionButton>
+                )}
+              </div>
             </div>
           </div>
         </div>

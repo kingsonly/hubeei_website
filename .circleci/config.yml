@@ -35,7 +35,7 @@ jobs:
       - run:
           name: ssh login  
           command: |
-            rsync -va -e 'ssh -p 7822 -o StrictHostKeyChecking=no'  --delete   build/  skillz@185.160.67.60:hubeei/website
+            rsync -va -e 'ssh -p 7822 -o StrictHostKeyChecking=no'  --delete   build/ .htaccess  skillz@185.160.67.60:hubeei/website
       # - run:
       #     name: ssh and run migration on live server  
       #     command: |
@@ -73,7 +73,7 @@ jobs:
       - run:
           name: ssh login  
           command: |
-            rsync -va -e 'ssh  -o StrictHostKeyChecking=no'   build/  hubeei@94.72.98.194:public_html/
+            rsync -va -e 'ssh  -o StrictHostKeyChecking=no'   build/ .htaccess hubeei@94.72.98.194:public_html/
      
 workflows:
   version: 2
