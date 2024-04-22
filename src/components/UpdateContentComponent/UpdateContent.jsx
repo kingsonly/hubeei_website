@@ -171,6 +171,7 @@ export default function UpdateContent({ data }) {
         </div>
         <div className="w-[30%]">
           <UploadButton
+            text="Thumbnail"
             handleOnChange={(e) => setThumbnail(e.target.files[0])}
           />
         </div>
@@ -246,7 +247,7 @@ export default function UpdateContent({ data }) {
         <div>
           <ActionButton withBG={true} handleClick={handleSubmit}>
             <div className="flex justify-around w-[100%]">
-              <div>Create</div>
+              <div>Update</div>
               <div>
                 {loader ? (
                   <CircularProgress

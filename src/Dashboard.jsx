@@ -9,7 +9,7 @@ import { styled } from "@mui/system";
 import ActionButton from "./components/ActionButton";
 import CategoryContent from "./components/CategoryContent/CategoryContent";
 import { useEffect } from "react";
-import axios from "axios";
+import axios, { Axios } from "axios";
 import DashboardHubs from "./components/Dashboard/DashboardHubs";
 import TextInput from "./components/InputComponent/TextInput";
 import ReactPlayer from "react-player";
@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [showContentModal, setShowContentModal] = useState(false);
   const [updateContentState, setUpdateContentState] = useState(false);
   const [openDeleteContent, setOpenDeleteContent] = useState(false);
+  const [openEditCategory, setOpenEditCategory] = useState(false);
   const [deleteLoader, setDeleteLoader] = useState(false);
   const [createHub, setCreateHub] = useState(false);
   const [hubLoader, setHubLoader] = useState(false);
@@ -63,11 +64,39 @@ export default function Dashboard() {
   const [logoModalLoader, setLogoModalLoader] = useState(false);
   const [logoValue, setLogoValue] = useState();
   const [registrationSettings, setRegistrationSettings] = useState(false);
+  const [updateCategoryTitleState, setUpdateCategoryTitleState] = useState("");
+  const [updateCategoryId, setUpdateCategoryId] = useState("");
+  const [updateCategoryTitleError, setUpdateCategoryTitleError] =
+    useState(false);
   const [newHubError, setNewHubError] = useState({
     name: "",
     url: "",
     description: "",
   });
+  const [registrationFieldData, setRegistrationFieldData] = useState([]);
+  const [registrationFieldSettingsStage, setRegistrationFieldSettingsStage] =
+    useState(1);
+  const [withPayment, setWithPayment] = useState("no");
+  const [tenure, setTenure] = useState("one off");
+  const [amount, setAmount] = useState(0);
+  const [registrationSettingsDetails, setRegistrationSettingsDetails] =
+    useState({});
+  const [
+    registrationSettingsDetailsModal,
+    setRegistrationSettingsDetailsModal,
+  ] = useState(false);
+  const [subscribersModal, setSubscribersModal] = useState(false);
+  const [subscribers, setSubscribers] = useState([]);
+  const option = [
+    { label: "YES", value: "yes" },
+    { label: "NO", value: "no" },
+  ];
+
+  const paymentTenure = [
+    { label: "ONE OFF", value: "one Off" },
+    { label: "MONTHLY", value: "monthly" },
+    { label: "YEARLY", value: "yearly" },
+  ];
 
   useEffect(() => {
     bootstrap();
@@ -94,7 +123,16 @@ export default function Dashboard() {
           localStorage.setItem("hubList", JSON.stringify(response.data.data));
           let id = localStorage.getItem("hub");
           let hubDetails = JSON.parse(localStorage.getItem("hubDetails"));
-          //action(id, hubDetails);
+          let getNewHubId = localStorage.getItem("newHub");
+          if (getNewHubId != undefined) {
+            let mainHubDetails = response.data.data.filter(
+              (data) => data.id == getNewHubId
+            );
+            action(getNewHubId, mainHubDetails[0]);
+            console.log("i am the main real", mainHubDetails);
+            localStorage.removeItem("newHub");
+          }
+
           createSettings();
         } else {
           //handle the error here
@@ -144,6 +182,7 @@ export default function Dashboard() {
       }
     }
   };
+
   const updateLogoModal = () => {
     setLogoModal(true);
   };
@@ -249,9 +288,12 @@ export default function Dashboard() {
         setHubLoader(false);
         if (response.data.status == "sucess") {
           // save new hub id in local storage
-          //localStorage.setItem("hub", response.data.data.id);
+          localStorage.removeItem("hub");
+          localStorage.removeItem("hubDetails");
+          localStorage.removeItem("hubList");
+          localStorage.setItem("newHub", response.data.data.id);
           // move user to new hub.
-          setRefreshLoader(true);
+
           window.location.reload();
         }
       })
@@ -295,6 +337,7 @@ export default function Dashboard() {
     setViewSelectedContents(item);
     setOpenDeleteContent(true);
   };
+
   const handleCloseDeleteContent = (item) => {
     setOpenDeleteContent(false);
   };
@@ -515,6 +558,14 @@ export default function Dashboard() {
     // use content to update both state and local storage
   };
 
+  const editCategory = (item) => {
+    //show modal here
+    setUpdateCategoryTitleState(item.name);
+    setUpdateCategoryId(item.id);
+    setOpenEditCategory(true);
+    setUpdateCategoryTitleError(false);
+  };
+
   const showRegistrationSettings = (data) => {
     // get hub id fromthe local storage
     let hub = localStorage.getItem("hub");
@@ -527,6 +578,7 @@ export default function Dashboard() {
           // show modal
           setRegistrationSettings(true);
         } else {
+          activateRegistrationSettings();
         }
       })
       .catch((error) => {
@@ -535,6 +587,616 @@ export default function Dashboard() {
     //console.log(data);
     //setRegistrationSettings(true);
   };
+
+  const updateCategoryTitle = () => {
+    // check that the category name is not empty
+    if (updateCategoryTitleState.length < 1) {
+      setUpdateCategoryTitleError(true);
+      return;
+    }
+    // start the modal loader
+    setLogoModalLoader(true);
+    // tun axios command to update category
+    let data = { name: updateCategoryTitleState };
+    let id = updateCategoryId;
+    let url = `${process.env.REACT_APP_BACKEND_API}update-category/${id}`;
+    axios
+      .post(url, data)
+      .then((res) => {
+        setLogoModalLoader(false);
+        if (res.data.status == "success") {
+          window.location.reload();
+        }
+      })
+      .catch((error) => {
+        setLogoModalLoader(false);
+      });
+  };
+
+  const addRegistrationCustomField = () => {
+    let newCustomField = { name: "", type: "string" };
+    setRegistrationFieldData((previous) => [...previous, newCustomField]);
+  };
+
+  const removeRegistrationCustomField = (indexToDelete) => {
+    let customField = [...registrationFieldData];
+    const customFieldAfterDelete = [
+      ...customField.slice(0, indexToDelete),
+      ...customField.slice(indexToDelete + 1),
+    ];
+    setRegistrationFieldData(customFieldAfterDelete);
+  };
+
+  const updateCustomFieldValue = (value, index) => {
+    let customField = [...registrationFieldData];
+    customField[index].name = value;
+    setRegistrationFieldData(customField);
+    console.log("customField", customField);
+  };
+
+  const renderRegistrationSettings = () => {
+    switch (registrationFieldSettingsStage) {
+      case 1:
+        return renderRegistrationSettingsCase1();
+      case 2:
+        return renderRegistrationSettingsCase2();
+    }
+  };
+
+  const renderRegistrationSettingsCase1 = () => {
+    return (
+      <div>
+        <div className="flex justify-center ">
+          <h1 className="text-[25px]">Configure Registration</h1>
+        </div>
+        <div className="justify-center mt-6  ">
+          <div className="w-[100%]">
+            <TextInput
+              disabled
+              label="Required"
+              value={"Full Name"}
+              onChange={(e) => {
+                setUpdateCategoryTitleState(e.target.value);
+                setUpdateCategoryTitleError(false);
+              }}
+              inputProps={{
+                style: {
+                  fontFamily: "Arial",
+                  webkitTextFillColor: "white",
+                },
+              }}
+              style={{ flex: 1 }}
+              maxRows={10}
+              sx={{
+                "& .MuiFormLabel-root": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "& .MuiFormLabel-root.Mui-focused": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "&.MuiFormLabel-root.Mui-disabled": {
+                  color: "gray", // Change the font color of disabled label here
+                },
+              }}
+            />
+          </div>
+          <div className="w-[100%]">
+            <TextInput
+              disabled
+              label="Required"
+              value={"Email"}
+              onChange={(e) => {
+                setUpdateCategoryTitleState(e.target.value);
+                setUpdateCategoryTitleError(false);
+              }}
+              inputProps={{
+                style: {
+                  fontFamily: "Arial",
+                  webkitTextFillColor: "white",
+                },
+              }}
+              style={{ flex: 1 }}
+              maxRows={10}
+              sx={{
+                "& .MuiFormLabel-root": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "& .MuiFormLabel-root.Mui-focused": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "&.MuiFormLabel-root.Mui-disabled": {
+                  color: "gray", // Change the font color of disabled label here
+                },
+              }}
+            />
+          </div>
+          <div className="w-[100%]">
+            <TextInput
+              disabled
+              label="Required"
+              value={"Password"}
+              onChange={(e) => {
+                setUpdateCategoryTitleState(e.target.value);
+                setUpdateCategoryTitleError(false);
+              }}
+              inputProps={{
+                style: {
+                  fontFamily: "Arial",
+                  webkitTextFillColor: "white",
+                },
+              }}
+              style={{ flex: 1 }}
+              maxRows={10}
+              sx={{
+                "& .MuiFormLabel-root": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "& .MuiFormLabel-root.Mui-focused": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "&.MuiFormLabel-root.Mui-disabled": {
+                  color: "gray", // Change the font color of disabled label here
+                },
+              }}
+            />
+          </div>
+        </div>
+        {registrationFieldData.length < 1 ? (
+          <div>
+            <ActionButton
+              handleClick={addRegistrationCustomField}
+              withBG={true}
+            >
+              Add Custom Field
+            </ActionButton>
+          </div>
+        ) : (
+          <div>
+            {registrationFieldData.map((value, index) => (
+              <div className="flex w-[100%] justify-between">
+                <div className="w-[90%]">
+                  <TextInput
+                    label="Field Name"
+                    onChange={(e) => {
+                      updateCustomFieldValue(e.target.value, index);
+                    }}
+                    inputProps={{
+                      style: {
+                        fontFamily: "Arial",
+                        webkitTextFillColor: "white",
+                      },
+                    }}
+                    style={{ flex: 1 }}
+                    maxRows={10}
+                    sx={{
+                      "& .MuiFormLabel-root": {
+                        color: "red",
+                        backgroundColor: "red",
+                      },
+                      "& .MuiFormLabel-root.Mui-focused": {
+                        color: "red",
+                        backgroundColor: "red",
+                      },
+                      "&.MuiFormLabel-root.Mui-disabled": {
+                        color: "gray", // Change the font color of disabled label here
+                      },
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between">
+                  <div className="w-[40%]" onClick={addRegistrationCustomField}>
+                    add
+                  </div>
+                  <div
+                    className="w-[40%]"
+                    onClick={() => removeRegistrationCustomField(index)}
+                  >
+                    {" "}
+                    remove
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-end mt-6 ">
+          <ActionButton handleClick={registrationNextStep} withBG={true}>
+            Next
+          </ActionButton>
+        </div>
+      </div>
+    );
+  };
+
+  const renderRegistrationSettingsCase2 = () => {
+    return (
+      <div>
+        <div className="flex justify-center ">
+          <h1 className="text-[25px]">Configure Subscription </h1>
+        </div>
+        <div className="justify-center mt-6  ">
+          <TextInput
+            type="select"
+            value={withPayment}
+            options={option}
+            label="Charge Subscribers"
+            onChange={(e) => selectOption(e)}
+          />
+        </div>
+        {withPayment == "yes" && (
+          <div>
+            <div className="justify-center mt-6  ">
+              <TextInput
+                type="select"
+                options={paymentTenure}
+                label="Subscription Frequency"
+                onChange={(e) => setTenure(e.target.value)}
+              />
+            </div>
+
+            <div className="justify-center mt-6  ">
+              <TextInput
+                label="Amount"
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                }}
+                inputProps={{
+                  style: {
+                    fontFamily: "Arial",
+                    webkitTextFillColor: "white",
+                  },
+                }}
+                style={{ flex: 1 }}
+                maxRows={10}
+                sx={{
+                  "& .MuiFormLabel-root": {
+                    color: "red",
+                    backgroundColor: "red",
+                  },
+                  "& .MuiFormLabel-root.Mui-focused": {
+                    color: "red",
+                    backgroundColor: "red",
+                  },
+                  "&.MuiFormLabel-root.Mui-disabled": {
+                    color: "gray", // Change the font color of disabled label here
+                  },
+                }}
+              />
+            </div>
+          </div>
+        )}
+        <div className="flex justify-end ">
+          <div className="flex  mt-6 justify-between w-[35%]">
+            <div>
+              <ActionButton
+                handleClick={registrationPrevStep}
+                withBorder={true}
+              >
+                Back
+              </ActionButton>
+            </div>
+            <div>
+              {!logoModalLoader ? (
+                <ActionButton
+                  handleClick={activateRegistrationSettings}
+                  withBG={true}
+                >
+                  Activate
+                </ActionButton>
+              ) : (
+                <ActionButton withBG={true}>
+                  <div className="flex justify-between ">
+                    <div>Activating</div>
+                    <div className="pl-[10px]">
+                      <CircularProgress className="text-[#000]" size={20} />{" "}
+                    </div>
+                  </div>
+                </ActionButton>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const registrationPrevStep = () => {
+    let step = registrationFieldSettingsStage;
+    step -= 1;
+    setRegistrationFieldSettingsStage(step);
+  };
+  const registrationNextStep = () => {
+    let step = registrationFieldSettingsStage;
+    step += 1;
+    setRegistrationFieldSettingsStage(step);
+  };
+
+  const activateRegistrationSettings = () => {
+    // DOnt forget to effect validation
+    let hubId = localStorage.getItem("hub");
+    let data = {
+      hub_id: localStorage.getItem("hub"),
+      structure: JSON.stringify(registrationFieldData),
+      with_payment: withPayment,
+      tenure: tenure,
+      primary_amount: amount,
+    };
+    let url = `${process.env.REACT_APP_BACKEND_API}register-settings-create`;
+    axios
+      .post(url, data)
+      .then((res) => {
+        console.log(res);
+        if (res.data.status == "success") {
+          updateHubSettings(hubId);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const selectOption = (e) => {
+    if (e.target.value == "no") {
+      setAmount(0);
+      setTenure("one off");
+    }
+    setWithPayment(e.target.value);
+  };
+
+  const showSubscribersSettings = () => {
+    // show modal with a loader till content is done loading
+    setRegistrationSettingsDetailsModal(true);
+    let hubId = localStorage.getItem("hub");
+    let url = `${process.env.REACT_APP_BACKEND_API}register-settings-view`;
+    axios
+      .get(`${url}/${hubId}`)
+      .then((res) => {
+        if (res.data.status == "success") {
+          setRegistrationSettingsDetails(
+            res.data.data.create_hub_registration_settings
+          );
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const showSubscribers = () => {
+    setSubscribersModal(true);
+    let hubId = localStorage.getItem("hub");
+    let url = `${process.env.REACT_APP_BACKEND_API}get-hub-subscribers`;
+    axios
+      .get(`${url}/${hubId}`)
+      .then((res) => {
+        console.log(res.data.data);
+        setSubscribers(res.data.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const renderRegistrationSettingsDetails = () => {
+    return (
+      <div>
+        <div className="flex justify-center ">
+          <h1 className="text-[25px]">Registration Required Fields</h1>
+        </div>
+        <div className="justify-center mt-6  ">
+          <div className="w-[100%]">
+            <TextInput
+              disabled
+              label="Required"
+              value={"Full Name"}
+              onChange={(e) => {
+                setUpdateCategoryTitleState(e.target.value);
+                setUpdateCategoryTitleError(false);
+              }}
+              inputProps={{
+                style: {
+                  fontFamily: "Arial",
+                  webkitTextFillColor: "white",
+                },
+              }}
+              style={{ flex: 1 }}
+              maxRows={10}
+              sx={{
+                "& .MuiFormLabel-root": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "& .MuiFormLabel-root.Mui-focused": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "&.MuiFormLabel-root.Mui-disabled": {
+                  color: "gray", // Change the font color of disabled label here
+                },
+              }}
+            />
+          </div>
+          <div className="w-[100%]">
+            <TextInput
+              disabled
+              label="Required"
+              value={"Email"}
+              onChange={(e) => {
+                setUpdateCategoryTitleState(e.target.value);
+                setUpdateCategoryTitleError(false);
+              }}
+              inputProps={{
+                style: {
+                  fontFamily: "Arial",
+                  webkitTextFillColor: "white",
+                },
+              }}
+              style={{ flex: 1 }}
+              maxRows={10}
+              sx={{
+                "& .MuiFormLabel-root": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "& .MuiFormLabel-root.Mui-focused": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "&.MuiFormLabel-root.Mui-disabled": {
+                  color: "gray", // Change the font color of disabled label here
+                },
+              }}
+            />
+          </div>
+          <div className="w-[100%]">
+            <TextInput
+              disabled
+              label="Required"
+              value={"Password"}
+              onChange={(e) => {
+                setUpdateCategoryTitleState(e.target.value);
+                setUpdateCategoryTitleError(false);
+              }}
+              inputProps={{
+                style: {
+                  fontFamily: "Arial",
+                  webkitTextFillColor: "white",
+                },
+              }}
+              style={{ flex: 1 }}
+              maxRows={10}
+              sx={{
+                "& .MuiFormLabel-root": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "& .MuiFormLabel-root.Mui-focused": {
+                  color: "red",
+                  backgroundColor: "red",
+                },
+                "&.MuiFormLabel-root.Mui-disabled": {
+                  color: "gray", // Change the font color of disabled label here
+                },
+              }}
+            />
+          </div>
+        </div>
+        <div>
+          {registrationSettingsDetails?.hub_registration_setting_fields?.map(
+            (value, index) => (
+              <div className="flex w-[100%] justify-between">
+                <div className="w-[90%]">
+                  <TextInput
+                    disabled
+                    label="Required"
+                    value={value.name}
+                    inputProps={{
+                      style: {
+                        fontFamily: "Arial",
+                        webkitTextFillColor: "white",
+                      },
+                    }}
+                    style={{ flex: 1 }}
+                    maxRows={10}
+                    sx={{
+                      "& .MuiFormLabel-root": {
+                        color: "red",
+                        backgroundColor: "red",
+                      },
+                      "& .MuiFormLabel-root.Mui-focused": {
+                        color: "red",
+                        backgroundColor: "red",
+                      },
+                      "&.MuiFormLabel-root.Mui-disabled": {
+                        color: "gray", // Change the font color of disabled label here
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+            )
+          )}
+        </div>
+
+        <div>
+          <ActionButton handleClick={addRegistrationCustomField} withBG={true}>
+            Subscription Details
+          </ActionButton>
+        </div>
+        <div className="mt-6  ">
+          <table className="min-w-full divide-y  divide-gray-200 text-[#000]">
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr>
+                <th className="px-6 py-4 whitespace-nowrap">With Payment :</th>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {" "}
+                  {registrationSettingsDetails.with_payment}
+                </td>
+              </tr>
+              <tr>
+                <th className="px-6 py-4 whitespace-nowrap">Tenure :</th>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {" "}
+                  {registrationSettingsDetails.tenure}
+                </td>
+              </tr>
+              <tr>
+                <th className="px-6 py-4 whitespace-nowrap">Amount :</th>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {" "}
+                  {registrationSettingsDetails.primary_amount}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSubscribers = () => {
+    return (
+      <div className="overflow-x-auto">
+        <div className="flex justify-center ">
+          <h1 className="text-[25px]">Subscribers</h1>
+        </div>
+        <table className="table-auto min-w-full border-collapse border border-gray-300 text-center ">
+          <thead className="bg-gray-100 text-[#DCD427]">
+            <tr>
+              <th className="px-4 py-2">SN</th>
+              <th className="px-4 py-2">NAME</th>
+              <th className="px-4 py-2">EMAIL</th>
+              <th className="px-4 py-2">ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subscribers.map((value, index) => (
+              <tr
+                key={index}
+                className={
+                  index % 2 === 0 ? "bg-[black]" : "bg-white text-[black] "
+                }
+              >
+                <td className="px-4 py-2">{index + 1}</td>
+                <td className="px-4 py-2">{value.subscriber.name}</td>
+                <td className="px-4 py-2">{value.subscriber.email}</td>
+                <td className="px-4 py-2">
+                  <VisibilityIcon className="bg-[#DCD427] hover:bg-[#B9B009] text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <main className="flex">
       <Snackbar
@@ -553,11 +1215,97 @@ export default function Dashboard() {
           This is a success Alert inside a Snackbar!
         </Alert>
       </Snackbar>
+
+      <AppModal
+        open={subscribersModal}
+        handleClose={() => setSubscribersModal(false)}
+      >
+        <div className="">
+          {subscribers.length > 0 ? (
+            <div>{renderSubscribers()}</div>
+          ) : (
+            <div className="flex justify-center items-center h-[300px]">
+              <CircularProgress style={{ color: "#fff" }} size={50} />{" "}
+            </div>
+          )}
+        </div>
+      </AppModal>
+
+      <AppModal
+        open={registrationSettingsDetailsModal}
+        handleClose={() => setRegistrationSettingsDetailsModal(false)}
+      >
+        <div className="">
+          {Object.keys(registrationSettingsDetails).length > 0 ? (
+            <div>{renderRegistrationSettingsDetails()}</div>
+          ) : (
+            <div className="flex justify-center items-center h-[300px]">
+              <CircularProgress style={{ color: "#fff" }} size={50} />{" "}
+            </div>
+          )}
+        </div>
+      </AppModal>
+
       <AppModal
         open={registrationSettings}
         handleClose={() => setRegistrationSettings(false)}
       >
-        test me
+        <div>{renderRegistrationSettings()}</div>
+      </AppModal>
+
+      <AppModal
+        open={openEditCategory}
+        handleClose={() => setOpenEditCategory(false)}
+      >
+        <div>
+          <div className="flex justify-center ">
+            <h1 className="text-[25px]">Update Category</h1>
+          </div>
+          <div className="flex justify-center mt-6  ">
+            <div className="w-[100%]">
+              <TextInput
+                error={updateCategoryTitleError}
+                id="outlined-multiline-flexible"
+                label="Category Name"
+                value={updateCategoryTitleState}
+                onChange={(e) => {
+                  setUpdateCategoryTitleState(e.target.value);
+                  setUpdateCategoryTitleError(false);
+                }}
+                inputProps={{
+                  style: { fontFamily: "Arial", color: "white" },
+                }}
+                style={{ flex: 1, color: "white" }}
+                maxRows={10}
+                sx={{
+                  "& .MuiFormLabel-root": {
+                    color: "white",
+                  },
+                  "& .MuiFormLabel-root.Mui-focused": {
+                    color: "white",
+                  },
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-6 ">
+            {!logoModalLoader ? (
+              <ActionButton handleClick={updateCategoryTitle} withBG={true}>
+                Update
+              </ActionButton>
+            ) : (
+              <ActionButton withBG={true}>
+                <div className="flex justify-between ">
+                  <div>Update</div>
+                  <div className="pl-[10px]">
+                    <CircularProgress className="text-[#000]" size={20} />{" "}
+                  </div>
+                </div>
+              </ActionButton>
+            )}
+          </div>
+        </div>
       </AppModal>
       <AppModal open={createHub} handleClose={() => setCreateHub(false)}>
         {refreshLoader ? (
@@ -896,6 +1644,8 @@ export default function Dashboard() {
                   updateLogo={updateLogoModal}
                   showRegistrationSettings={showRegistrationSettings}
                   updateSettingsRefresh={updateHubSettings}
+                  showSubscribersSettings={showSubscribersSettings}
+                  showSubscribers={showSubscribers}
                 />
               </div>
             ) : null}
@@ -918,6 +1668,7 @@ export default function Dashboard() {
                   viewContents={viewContents}
                   deleteContent={confirmDeleteContent}
                   updateContent={updateContent}
+                  editCategory={editCategory}
                 />
               ) : (
                 <div className="flex items-center justify-center h-screen round ">

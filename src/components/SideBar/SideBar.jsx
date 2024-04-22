@@ -8,6 +8,7 @@ import { styled } from "@mui/material/styles";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import axios from "axios";
 import { HexColorPicker } from "react-colorful";
+import CopyToClipboardButton from "../CopyToClipboardButton/CopyToClipboardButton";
 
 /**
  * SideBar is a component used to manage menu page navigation.
@@ -22,9 +23,10 @@ const Sidebar = ({
   hubList,
   showCreateHub,
   showRegistrationSettings,
-  showSuscribers,
   setting,
   updateLogo,
+  showSubscribersSettings,
+  showSubscribers,
   updateSettingsRefresh,
 }) => {
   const [showHub, setShowHub] = useState(false);
@@ -79,7 +81,7 @@ const Sidebar = ({
   useEffect(() => {
     let getHubDetails = JSON.parse(localStorage.getItem("hubDetails"));
     setUrl(getHubDetails.url);
-    console.log("i am settings ", settings);
+    console.log("i am settings for real ", settings);
   }, []);
 
   const logout = () => {
@@ -122,9 +124,8 @@ const Sidebar = ({
       // show setting modal
       if (e.target.checked == true) {
         showRegistrationSettings(data);
+        return;
       }
-
-      return;
     }
 
     let response = await axios.post(
@@ -200,6 +201,7 @@ const Sidebar = ({
   };
 
   const switchHub = (id, details) => {
+    console.log("iam the details ", details);
     localStorage.setItem("hubDetails", JSON.stringify(details));
     localStorage.setItem("hub", id);
     window.location.reload();
@@ -318,9 +320,12 @@ const Sidebar = ({
                     </Typography>
                   </div>
                   <div className=" p-2 max-h-[100px] ">
-                    <Typography variant="h6" className="text-[#DCD427]">
+                    <CopyToClipboardButton
+                      text={`https://${url}.${process.env.REACT_APP_ROUTE}`}
+                    />
+                    {/* <Typography variant="h6" className="text-[#DCD427]">
                       {`https://${url}.${process.env.REACT_APP_ROUTE}`}
-                    </Typography>
+                    </Typography> */}
                   </div>
                 </>
               ) : null}
@@ -497,9 +502,27 @@ const Sidebar = ({
                   </div>
                   {registration == 1 ? (
                     <div>
-                      <ActionButton withBG={true} className="w-[100%]">
-                        Subscribers
-                      </ActionButton>
+                      <div className="mt-2">
+                        <ActionButton
+                          handleClick={showSubscribers}
+                          withBG={true}
+                          className="w-[100%]"
+                        >
+                          Subscribers
+                        </ActionButton>
+                      </div>
+
+                      <div className="mt-2">
+                        <ActionButton
+                          handleClick={showSubscribersSettings}
+                          withBG={true}
+                          className="w-[100%] "
+                        >
+                          <div className="text-[21px]">
+                            Subscribers Settings
+                          </div>
+                        </ActionButton>
+                      </div>
                     </div>
                   ) : null}
 

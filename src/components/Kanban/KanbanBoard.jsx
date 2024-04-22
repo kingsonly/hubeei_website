@@ -16,6 +16,7 @@ import axios from "axios";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import { Tooltip } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list["content"]);
@@ -72,6 +73,7 @@ export default function KanbanBoard({
   viewContents,
   updateContent,
   deleteContent,
+  editCategory,
 }) {
   const [state, setState] = useState(categories);
   const responsive = {
@@ -117,7 +119,6 @@ export default function KanbanBoard({
       const newState = [...state];
       newState[sInd] = items;
       setState(newState);
-      console.log("i am data", newState);
       changeContentPosition(newState);
     } else {
       const result = move(state[sInd], state[dInd], source, destination);
@@ -127,7 +128,7 @@ export default function KanbanBoard({
 
       setState(newState);
       // post data to saver from here
-      console.log("i am data", newState);
+
       changeContentPosition(newState);
     }
   }
@@ -149,7 +150,6 @@ export default function KanbanBoard({
     <div>
       <div className="">
         <DragDropContext onDragEnd={onDragEnd}>
-          {console.log("contents", state)}
           {state.map((el, ind) => {
             return (
               <Droppable
@@ -160,17 +160,27 @@ export default function KanbanBoard({
                 {(provided, snapshot) => {
                   return (
                     <div className="min-h-[300px] ">
-                      <div className="w-[100%] ">
-                        <Typography
-                          variant="h4"
-                          className="font-roboto uppercase"
-                        >
-                          {el.name}
-                        </Typography>
+                      <div className="w-[100%] flex ">
+                        <div className="mr-4">
+                          <Typography
+                            variant="h4"
+                            className="font-roboto uppercase"
+                          >
+                            {el.name}
+                          </Typography>
+                        </div>
+                        <div>
+                          <Tooltip className="" title={`Edit Category`}>
+                            <EditIcon
+                              onClick={() => editCategory(el)}
+                              className="text-[#DCD427] cursor-pointer"
+                            />
+                          </Tooltip>
+                        </div>
                       </div>
 
                       <div className="flex ">
-                        <div className="w-[20%] flex items-center justify-center">
+                        <div className="w-[5%] flex items-center justify-center">
                           <div>
                             <div
                               className="flex justify-center  mt-3"
@@ -178,7 +188,7 @@ export default function KanbanBoard({
                             >
                               <Tooltip
                                 className="capitalize"
-                                title={`Create A New ${el.name} Content`}
+                                title={`Add Content`}
                               >
                                 <AddCircleRoundedIcon
                                   style={{ fontSize: "40px" }}
