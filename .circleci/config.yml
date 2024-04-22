@@ -65,6 +65,16 @@ jobs:
       - run:
           name: Update known hosts
           command: ssh-keyscan -H 94.72.98.194 >> ~/.ssh/known_hosts && cat ~/.ssh/known_hosts
+      
+      - run:
+          name: rename .env.sample file to .env 
+          command: |
+            mv .env.sample .env
+      - run:
+          name: find and replace in document
+          command: |
+            sed -i -e 's:REACT_APP_BACKEND_API="sample":REACT_APP_BACKEND_API="$REACT_APP_BACKEND_API":g' .env && sed -i -e 's:REACT_APP_DOCUMENTS="sample":REACT_APP_DOCUMENTS="$REACT_APP_DOCUMENTS":g' .env && sed -i -e 's:REACT_APP_ROUTE="sample":REACT_APP_ROUTE="$REACT_APP_ROUTE":g' .env 
+
       - run:
           name: build file
           command: |
