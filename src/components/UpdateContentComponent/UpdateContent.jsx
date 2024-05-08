@@ -167,6 +167,7 @@ export default function UpdateContent({ data }) {
             label={"Title"}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            inputProps={{ style: { fontFamily: "Arial", color: "white" } }}
           />
         </div>
         <div className="w-[30%]">

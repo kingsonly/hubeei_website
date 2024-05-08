@@ -132,6 +132,7 @@ export default function CategoryContent({ categoryId, created }) {
       }
 
       const formData = new FormData();
+      formData.append("hub_id", localStorage.getItem("hub"));
       formData.append("content", content);
       formData.append("name", title);
       formData.append("content_type", type);
@@ -297,6 +298,7 @@ export default function CategoryContent({ categoryId, created }) {
           <div className="w-[48%]">
             <TextInput
               label={"Title"}
+              inputProps={{ style: { fontFamily: "Arial", color: "white" } }}
               onChange={(e) => setTitle(e.target.value)}
               error={error.title}
             />
