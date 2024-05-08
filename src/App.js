@@ -1,14 +1,12 @@
-"use client";
-import Image from "next/image";
-import AppButtons from "../components/AppButtons.js";
-import bg from "../../public/images/headerimage.png";
-import footer from "../../public/images/footer.png";
-import step1 from "../../public/images/step1.png";
-import step2 from "../../public/images/step2.png";
-import step3 from "../../public/images/step3.png";
-import logo from "../../public/images/logo.jpeg";
-import ActionButton from "@/components/ActionButton.jsx";
-import FlipCard from "@/components/FlipCard.jsx";
+import AppButtons from "./components/AppButtons.js";
+import bg from "./images/headerimage.png";
+import footer from "./images/footer.png";
+import step1 from "./images/step1.png";
+import step2 from "./images/step2.png";
+import step3 from "./images/step3.png";
+import logo from "./images/logo.jpeg";
+import ActionButton from "./components/ActionButton.jsx";
+import FlipCard from "./components/FlipCard.jsx";
 import { useState, useEffect } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -24,17 +22,22 @@ import ListItem from "@mui/joy/ListItem";
 import ListItemDecorator from "@mui/joy/ListItemDecorator";
 import Check from "@mui/icons-material/Check";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
-import AppModal from "@/components/modalcomponent/AppModal.js";
-import TextInput from "@/components/InputComponent/TextInput.jsx";
+import AppModal from "./components/modalcomponent/AppModal.js";
+import TextInput from "./components/InputComponent/TextInput.jsx";
 import Axios from "axios";
 import CircularProgress from "@mui/material/CircularProgress";
 import CheckIcon from "@mui/icons-material/Check";
-import { useRouter } from "next/navigation";
-export default function Home() {
+import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { type } from "@testing-library/user-event/dist/type/index.js";
+//let navigate = useNavigate();
+
+export default function App() {
   const [isFlipped1, setIsFlipped1] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [isFlipped2, setIsFlipped2] = useState(false);
   const [isFlipped3, setIsFlipped3] = useState(false);
-  const router = useRouter();
+  const router = useNavigate();
   const [open, setOpen] = useState(false);
   const [loader, setLoader] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -62,12 +65,12 @@ export default function Home() {
     // check if a user is logged in and redirect the user to the dashboard page
     let token = localStorage.getItem("token");
     if (token != undefined) {
-      router.push("/dashboard");
+      router("/dashboard");
     }
   };
 
   const headerStyle = {
-    backgroundImage: `url('${bg.src}') `,
+    backgroundImage: `url('${bg}') `,
     backgroundSize: "100% 90%",
   };
   const footerStyle = {
@@ -115,7 +118,7 @@ export default function Home() {
       };
       try {
         const response = await Axios.post(
-          "https://api.hubeei.skillzserver.com/api/register",
+          `${process.env.REACT_APP_BACKEND_API}register`,
           data
         );
         if (response.data.status == "success") {
@@ -150,46 +153,59 @@ export default function Home() {
     setOpen(false);
   };
 
-  const handleOpenCategory = () => {
-    setOpenCategory(true);
-  };
+  // const handleOpenCategory = () => {
+  //   setOpenCategory(true);
+  // };
 
   const handleLogin = async () => {
     // validate data and then perform login
-
+    setLoginError("");
     if (!loader || loader) {
       setLoader(true);
       let data = {
         email: loginEmail,
         password: loginPassword,
       };
-      try {
-        const response = await Axios.post(
-          "https://api.hubeei.skillzserver.com/api/login",
-          data
-        );
-        if (response.data.status == "success") {
-          // save token and redirect to dashboard page
-          localStorage.setItem("token", response.data.data.token);
-          localStorage.setItem("userData", JSON.stringify(response.data.data));
-          console.log("abc", response.data.data.token);
 
-          router.push("/dashboard");
-        } else {
-          //handle the error here
-        }
-        setLoader(false);
-      } catch (error) {}
+      await Axios.post(`${process.env.REACT_APP_BACKEND_API}login`, data)
+        .then((response) => {
+          if (response.data.status == "success") {
+            // save token and redirect to dashboard page
+            localStorage.setItem("token", response.data.data.token);
+            localStorage.setItem(
+              "userData",
+              JSON.stringify(response.data.data)
+            );
+            console.log("abc", response.data.data.token);
+
+            router("/dashboard");
+          } else {
+            //handle the error here
+            alert(response.data.status);
+          }
+        })
+        .catch((error) => {
+          if (typeof error.response.data.data == "undefined") {
+            setLoginError("wrong email or password");
+          } else {
+            setLoginError("Email and Password cant be empty");
+          }
+        });
+      setLoader(false);
     }
   };
+
   return (
     <main>
       <AppModal open={openLogin} handleClose={handleCloseLogin}>
         <div>
           <div className="flex justify-center">
             <div>
-              <Image src={logo.src} width={200} height={200} />
+              <img src={logo} width={200} height={200} />
             </div>
+          </div>
+          <div className="flex justify-center text-[red] mt-4">
+            {loginError}
           </div>
           <div className="mt-4">
             <TextInput
@@ -235,9 +251,22 @@ export default function Home() {
           <div className="flex justify-end">
             <div>
               <div>forgoten password</div>
-              <ActionButton handleClick={handleLogin} withBG={true}>
-                Login
-              </ActionButton>
+              <div>
+                {loader ? (
+                  <ActionButton withBG={false}>
+                    <div className="flex">
+                      <div> Login</div>
+                      <div>
+                        <CircularProgress className="text-[#000]" size={30} />
+                      </div>
+                    </div>
+                  </ActionButton>
+                ) : (
+                  <ActionButton handleClick={handleLogin} withBG={true}>
+                    Login
+                  </ActionButton>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -356,7 +385,7 @@ export default function Home() {
                 <div className="w-[65%]">
                   <TextInput
                     id="outlined-multiline-flexible"
-                    label="Hub Url"
+                    label="Hub Url Name"
                     onChange={(e) => handleInputes(e, "huburl")}
                     inputProps={{
                       style: { fontFamily: "Arial", color: "white" },
@@ -439,12 +468,13 @@ export default function Home() {
           </div>
         )}
       </AppModal>
+
       <div className="flex h-[90vh]">
         <div className="w-[50%]">
           <div>
-            <Image src={logo.src} width={200} height={200} />
+            <img src={logo} width={200} height={200} />
           </div>
-          <div className="grid justify-items-center  content-center h-[80%]  ">
+          <div className="grid   content-center h-[80%]  ">
             <div className="w-[60%]">
               <h1 className="text-[35px] text-bold text-[#ccc]">
                 HELP PEOPLE FIND YOUR CONTENT
@@ -482,7 +512,7 @@ export default function Home() {
         </div>
         <div className="w-[50%] bg-no-repeat" style={headerStyle}></div>
       </div>
-      <div className="w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#DCD427] after:rounded after:mt-2  after:h-[5px] after:w-[200px]">
+      <div className="mt-8 w-[100%] text-center grid justify-items-center  content-center after:content-[''] after:block after:bg-[#DCD427] after:rounded after:mt-2  after:h-[5px] after:w-[200px]">
         <h1 className="text-[45px] text-bold text-[#fff]">
           Three easy
           <span class="before:block before:absolute before:-inset-1 before:ml-2  before:mr-2  before:bg-[#DCD427] relative ">

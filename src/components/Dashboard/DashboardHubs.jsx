@@ -1,6 +1,5 @@
-import Image from "next/image";
 import React from "react";
-import step1 from "../../../public/images/step1.png";
+import hubeeiLogo from "../../images/logo.jpeg";
 
 /**
  * Represents the dashboard card container.
@@ -13,22 +12,32 @@ import step1 from "../../../public/images/step1.png";
  * to use this component, take out the first <div> and dont forget the closing tag </div>
  * @returns {JSX}
  */
-
+//Paskilo2015##99 info@skillzsystems.com.ng
 export default function DashboardHubs(props) {
   const { title, image, action } = props;
   return (
     //data test id is the id used to get elements passed as arguments to the test files
 
     <div
-      className="  shadow-lg shadow-[#333] w-[280px] bg-black  rounded cursor-pointer"
+      className="   shadow-lg shadow-[#333] w-[280px] h-[200px]  bg-black  rounded cursor-pointer"
       onClick={action}
     >
-      <div>
-        <Image src={step1} width="100%" />
+      <div className="w-[100%] h-[70%] overflow-hidden">
+        <img
+          src={
+            image.length < 1
+              ? hubeeiLogo
+              : process.env.REACT_APP_DOCUMENTS + image
+          }
+          width="280"
+          height="100"
+        />
       </div>
-      <h3 className=" justify-start font-bold text-[#fff] text-[20px] font-semibold mb-[20px] text-center w-[100%]  ">
-        {title}
-      </h3>
+      <div className="h-[25%] flex justify-center items-center ">
+        <h3 className="  font-bold text-[#fff] text-[20px] font-semibold  text-center w-[100%]  ">
+          {title}
+        </h3>
+      </div>
     </div>
   );
 }

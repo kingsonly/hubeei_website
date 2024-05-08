@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import FlipCard from "@/components/FlipCard.jsx";
+import FlipCard from "../../components/FlipCard.jsx";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
-import step1 from "../../../public/images/step1.png";
+//import step1 from "../../../public/images/step1.png";
 import ActionButton from "../ActionButton";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -15,6 +15,8 @@ import KanBanCard from "./KanbanCard";
 import axios from "axios";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
+import { Tooltip } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list["content"]);
@@ -71,6 +73,7 @@ export default function KanbanBoard({
   viewContents,
   updateContent,
   deleteContent,
+  editCategory,
 }) {
   const [state, setState] = useState(categories);
   const responsive = {
@@ -116,7 +119,6 @@ export default function KanbanBoard({
       const newState = [...state];
       newState[sInd] = items;
       setState(newState);
-      console.log("i am data", newState);
       changeContentPosition(newState);
     } else {
       const result = move(state[sInd], state[dInd], source, destination);
@@ -126,21 +128,21 @@ export default function KanbanBoard({
 
       setState(newState);
       // post data to saver from here
-      console.log("i am data", newState);
+
       changeContentPosition(newState);
     }
   }
 
   const changeContentPosition = async (data) => {
     let response = await axios.post(
-      "https://api.hubeei.skillzserver.com/api/content/change-content-position",
+      `${process.env.REACT_APP_BACKEND_API}content/change-content-position`,
       { data: data }
     );
 
     if (response.data.status == "success") {
-      alert("done");
+      console.log("done");
     } else {
-      alert("error");
+      console.log("error");
     }
   };
 
@@ -157,54 +159,116 @@ export default function KanbanBoard({
               >
                 {(provided, snapshot) => {
                   return (
-                    <div className="flex mt-10 ">
-                      <div className="w-[20%] flex items-center justify-center">
-                        <div>
-                          <div className="">{el.name}</div>
-                          <div
-                            className="flex justify-center  mt-3"
-                            onClick={() => createNewContent(el.id)}
+                    <div className="min-h-[300px] ">
+                      <div className="w-[100%] flex ">
+                        <div className="mr-4">
+                          <Typography
+                            variant="h4"
+                            className="font-roboto uppercase"
                           >
-                            <AddCircleRoundedIcon className="text-[40px] text-[#DCD427] cursor-pointer " />
-                          </div>
+                            {el.name}
+                          </Typography>
+                        </div>
+                        <div>
+                          <Tooltip className="" title={`Edit Category`}>
+                            <EditIcon
+                              onClick={() => editCategory(el)}
+                              className="text-[#DCD427] cursor-pointer"
+                            />
+                          </Tooltip>
                         </div>
                       </div>
 
-                      <div
-                        ref={provided.innerRef}
-                        style={getListStyle(snapshot.isDraggingOver)}
-                        {...provided.droppableProps}
-                        className="mb-10 overflow-x-auto "
-                      >
-                        {el.content.map((item, index) => {
-                          return (
-                            <Draggable
-                              key={`${item.id}`}
-                              draggableId={`${item.id}`}
-                              index={index}
+                      <div className="flex ">
+                        <div className="w-[5%] flex items-center justify-center">
+                          <div>
+                            <div
+                              className="flex justify-center  mt-3"
+                              onClick={() => createNewContent(el.id)}
                             >
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  style={getItemStyle(
-                                    snapshot.isDragging,
-                                    provided.draggableProps.style
-                                  )}
+                              <Tooltip
+                                className="capitalize"
+                                title={`Add Content`}
+                              >
+                                <AddCircleRoundedIcon
+                                  style={{ fontSize: "40px" }}
+                                  className=" text-[#DCD427] cursor-pointer "
+                                />
+                              </Tooltip>
+                            </div>
+                          </div>
+                        </div>
+                        {el.content.length > 0 ? (
+                          <div
+                            ref={provided.innerRef}
+                            style={getListStyle(snapshot.isDraggingOver)}
+                            {...provided.droppableProps}
+                            className="mb-10 overflow-x-auto bg-[transparent]  min-h-[250px] "
+                          >
+                            {el.content.map((item, index) => {
+                              return (
+                                <Draggable
+                                  key={`${item.id}`}
+                                  draggableId={`${item.id}`}
+                                  index={index}
                                 >
-                                  <KanBanCard
-                                    item={item}
-                                    viewContents={() => viewContent(item)}
-                                    updateContent={() => updateContent(item)}
-                                    deleteContent={() => deleteContent(item)}
-                                  />
-                                </div>
-                              )}
-                            </Draggable>
-                          );
-                        })}
-                        {provided.placeholder}
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      style={getItemStyle(
+                                        snapshot.isDragging,
+                                        provided.draggableProps.style
+                                      )}
+                                    >
+                                      <KanBanCard
+                                        item={item}
+                                        viewContents={() => viewContent(item)}
+                                        updateContent={() =>
+                                          updateContent(item)
+                                        }
+                                        deleteContent={() =>
+                                          deleteContent(item)
+                                        }
+                                      />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              );
+                            })}
+                            {provided.placeholder}
+                          </div>
+                        ) : (
+                          <div
+                            ref={provided.innerRef}
+                            style={getListStyle(snapshot.isDraggingOver)}
+                            {...provided.droppableProps}
+                            className="mb-10 overflow-x-auto bg-[transparent]  min-h-[250px] "
+                            onClick={() => createNewContent(el.id)}
+                          >
+                            <div class="relative w-full h-full">
+                              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <span class="text-gray-300 text-2xl font-bold italic opacity-25">
+                                  Drag Content Here{" "}
+                                  <span className="bg-[]"> OR </span>
+                                  <span>Click </span>
+                                  <span className=" justify-center  mt-3">
+                                    <Tooltip
+                                      className="capitalize"
+                                      title={`Create A New ${el.name} Content`}
+                                    >
+                                      <AddCircleRoundedIcon
+                                        style={{ fontSize: "40px" }}
+                                        className="text-[#DCD427] cursor-pointer "
+                                      />
+                                    </Tooltip>
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

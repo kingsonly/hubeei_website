@@ -39,6 +39,9 @@ const MainInpute = styled(TextField)(({}) => ({
     "&.Mui-focused fieldset": {
       borderColor: "white",
     },
+    "&.Mui-disabled fieldset": {
+      borderColor: "white",
+    },
   },
 }));
 
@@ -206,7 +209,6 @@ export default function TextInput(props) {
                 color: "white",
               },
             }}
-            inputProps={{ style: { fontFamily: "Arial", color: "white" } }}
             style={{ flex: 1, color: "white" }}
             className={`flex justify-center ${error ? errorClasses : ""}`}
             required

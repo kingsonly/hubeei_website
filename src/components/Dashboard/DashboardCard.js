@@ -21,7 +21,7 @@ export default function DashboardCard(props) {
   return (
     //data test id is the id used to get elements passed as arguments to the test files
 
-    <div className="text-ellipsis overflow-hidden rounded-xl border border-solid border-2 border-[#DCD427] shadow-lg shadow-[#333] w-[280px] bg-black pl-[13px] h-[150px] p-4   shadow-lg transform -skew-x-3">
+    <div className="text-ellipsis overflow-hidden rounded-xl border border-solid border-2 border-[#DCD427] shadow-lg shadow-[#333] w-[100%] bg-black pl-[13px] h-[150px] p-4   shadow-lg transform -skew-x-3">
       <div className="flex justify-center">
         <Typography variant="h5" className="uppercase font-roboto">
           {title}

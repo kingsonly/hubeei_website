@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Logo from "../../../public/images/logo.jpeg";
-import Logoempty from "../../../public/images/logoplaceholder-removebg-preview.png";
-import Image from "next/image";
+import Logo from "../../images/logo.jpeg";
+import Logoempty from "../../images/logoplaceholder-removebg-preview.png";
 import { Typography } from "@mui/material";
 import ActionButton from "../ActionButton";
 import Switch from "@mui/material/Switch";
@@ -9,6 +8,7 @@ import { styled } from "@mui/material/styles";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import axios from "axios";
 import { HexColorPicker } from "react-colorful";
+import CopyToClipboardButton from "../CopyToClipboardButton/CopyToClipboardButton";
 
 /**
  * SideBar is a component used to manage menu page navigation.
@@ -22,8 +22,12 @@ const Sidebar = ({
   SideBarLinks,
   hubList,
   showCreateHub,
+  showRegistrationSettings,
   setting,
   updateLogo,
+  showSubscribersSettings,
+  showSubscribers,
+  updateSettingsRefresh,
 }) => {
   const [showHub, setShowHub] = useState(false);
   const [showHubSettings, setShowHubSettings] = useState(false);
@@ -33,7 +37,7 @@ const Sidebar = ({
   );
   const [menu, setMenu] = useState(parseInt(setting.menu.value));
   const [search, setSearch] = useState(parseInt(setting.search.value));
-  const [bgColor, setBgColor] = useState(setting.backgound.value);
+  const [bgColor, setBgColor] = useState(setting.background.value);
   const [bgPicker, setBgPicker] = useState(false);
   const [categoryPicker, setCategoryPicker] = useState(false);
   const [contentPicker, setContentPicker] = useState(false);
@@ -42,6 +46,9 @@ const Sidebar = ({
   const [registration, setRegistration] = useState(
     parseInt(setting.registration.value)
   );
+  const [topten, setTopten] = useState(parseInt(setting.topten.value));
+  const [registrationData, setRegistrationData] = useState();
+  const [url, setUrl] = useState("");
 
   const CustomSwitch = styled(Switch)(() => ({
     "& .MuiSwitch-track": {
@@ -72,7 +79,9 @@ const Sidebar = ({
   }));
 
   useEffect(() => {
-    console.log("i am settings ", settings);
+    let getHubDetails = JSON.parse(localStorage.getItem("hubDetails"));
+    setUrl(getHubDetails.url);
+    console.log("i am settings for real ", settings);
   }, []);
 
   const logout = () => {
@@ -82,8 +91,8 @@ const Sidebar = ({
   const updateSettings = async (e, type) => {
     switchAction(type, e);
     let value;
-    if (type == "backgound" || type == "content" || type == "category") {
-      if (type == "backgound") {
+    if (type == "background" || type == "content" || type == "category") {
+      if (type == "background") {
         setBgColor(e);
       }
       if (type == "content") {
@@ -110,13 +119,22 @@ const Sidebar = ({
       value: value,
     };
 
-    let response = await axios.post(
-      "https://api.hubeei.skillzserver.com/api/dashboard/hubs/settings/update",
+    if (type == "registration") {
+      //setRegistrationData(data);
+      // show setting modal
+      if (e.target.checked == true) {
+        showRegistrationSettings(data);
+        return;
+      }
+    }
 
+    let response = await axios.post(
+      `${process.env.REACT_APP_BACKEND_API}dashboard/hubs/settings/update`,
       data
     );
     if (response.data.status == "success") {
       switchAction(type, e);
+      updateSettingsRefresh(hubId);
     } else {
     }
   };
@@ -127,13 +145,16 @@ const Sidebar = ({
         setSpotlightState(e);
         break;
       case "menu":
-        setSpotlightState(e);
+        setMenuState(e);
         break;
       case "search":
-        setSpotlightState(e);
+        setSearchState(e);
         break;
       case "registration":
-        setSpotlightState(e);
+        setRegistrationState(e);
+        break;
+      case "topten":
+        setTopten(e);
         break;
     }
   };
@@ -180,6 +201,7 @@ const Sidebar = ({
   };
 
   const switchHub = (id, details) => {
+    console.log("iam the details ", details);
     localStorage.setItem("hubDetails", JSON.stringify(details));
     localStorage.setItem("hub", id);
     window.location.reload();
@@ -251,7 +273,7 @@ const Sidebar = ({
       <div data-testid="sidebarlinks">
         <div className=" shadow-[#DCD427] font-roboto shadow-2xl pb-[50px] overflow-auto flex flex-col h-screen fixed top-0 left-0 w-[273px] gap-y-[10px]">
           <div className="flex items-center justify-center bg-black ">
-            <Image src={Logo} alt="logo" width={200} className="mt-2" />
+            <img src={Logo} alt="logo" width={200} className="mt-2" />
           </div>
           <div
             style={{
@@ -273,13 +295,13 @@ const Sidebar = ({
                 <>
                   <div className="show-inactive p-2 flex justify-center text-center ">
                     {settings.logo.value.trim().length != 0 ? (
-                      <Image
-                        src={`https://api.hubeei.skillzserver.com/public${settings.logo.value}`}
+                      <img
+                        src={`${process.env.REACT_APP_DOCUMENTS}${settings.logo.value}`}
                         width={100}
                         height={100}
                       />
                     ) : (
-                      <Image
+                      <img
                         src={Logoempty}
                         alt="logo"
                         width="100"
@@ -292,10 +314,18 @@ const Sidebar = ({
                       {settings.title}
                     </Typography>
                   </div>
-                  <div className=" p-2 h-[100px] ">
+                  <div className=" p-2 max-h-[100px] ">
                     <Typography variant="h6" className="text-[#DCD427]">
                       {settings.description}
                     </Typography>
+                  </div>
+                  <div className=" p-2 max-h-[100px] ">
+                    <CopyToClipboardButton
+                      text={`https://${url}.${process.env.REACT_APP_ROUTE}`}
+                    />
+                    {/* <Typography variant="h6" className="text-[#DCD427]">
+                      {`https://${url}.${process.env.REACT_APP_ROUTE}`}
+                    </Typography> */}
                   </div>
                 </>
               ) : null}
@@ -385,6 +415,27 @@ const Sidebar = ({
                       }
                     />
                   </div>
+                  <div>
+                    <FormControlLabel
+                      control={
+                        <CustomSwitch
+                          checked={topten}
+                          onChange={(e) => updateSettings(e, "topten")}
+                          name="Top Ten"
+                        />
+                      }
+                      label={
+                        <Typography
+                          variant="h6"
+                          className={`${
+                            topten == 0 ? "text-[#ccc]" : "text-[#DCD427]"
+                          }`}
+                        >
+                          Top Ten
+                        </Typography>
+                      }
+                    />
+                  </div>
 
                   <div>
                     <FormControlLabel
@@ -433,7 +484,7 @@ const Sidebar = ({
                       control={
                         <CustomSwitch
                           checked={search}
-                          onChange={(e) => setSpotlightState(e, "search")}
+                          onChange={(e) => updateSettings(e, "search")}
                           name="search"
                         />
                       }
@@ -451,9 +502,27 @@ const Sidebar = ({
                   </div>
                   {registration == 1 ? (
                     <div>
-                      <ActionButton withBG={true} className="w-[100%]">
-                        Subscribers
-                      </ActionButton>
+                      <div className="mt-2">
+                        <ActionButton
+                          handleClick={showSubscribers}
+                          withBG={true}
+                          className="w-[100%]"
+                        >
+                          Subscribers
+                        </ActionButton>
+                      </div>
+
+                      <div className="mt-2">
+                        <ActionButton
+                          handleClick={showSubscribersSettings}
+                          withBG={true}
+                          className="w-[100%] "
+                        >
+                          <div className="text-[21px]">
+                            Subscribers Settings
+                          </div>
+                        </ActionButton>
+                      </div>
                     </div>
                   ) : null}
 
@@ -479,7 +548,7 @@ const Sidebar = ({
                       <div className="mt-4 w-[100%] flex justify-center">
                         <HexColorPicker
                           color={bgColor}
-                          onChange={(e) => updateSettings(e, "backgound")}
+                          onChange={(e) => updateSettings(e, "background")}
                         />
                       </div>
                     ) : null}
@@ -522,6 +591,23 @@ const Sidebar = ({
                   </div>
                 </div>
               ) : null}
+            </div>
+            <div
+              style={{
+                height: "64px",
+                display: "flex",
+                border: "solid 1px #fff",
+              }}
+            >
+              <div
+                className=" ring ring-gray-300 text-[#7E7E7E] cursor-pointer flex justify-center items-center  w-[100%] "
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.reload();
+                }}
+              >
+                <span className="">Logout</span>
+              </div>
             </div>
           </div>
         </div>

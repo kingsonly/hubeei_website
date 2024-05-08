@@ -36,7 +36,7 @@ export default function UpdateContent({ data }) {
 
       await axios
         .post(
-          "https://api.hubeei.skillzserver.com/api/content/update/" + data.id,
+          `${process.env.REACT_APP_BACKEND_API}content/update/${data.id}`,
           formData,
           {
             headers: {
@@ -167,10 +167,12 @@ export default function UpdateContent({ data }) {
             label={"Title"}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            inputProps={{ style: { fontFamily: "Arial", color: "white" } }}
           />
         </div>
         <div className="w-[30%]">
           <UploadButton
+            text="Thumbnail"
             handleOnChange={(e) => setThumbnail(e.target.files[0])}
           />
         </div>
@@ -246,7 +248,7 @@ export default function UpdateContent({ data }) {
         <div>
           <ActionButton withBG={true} handleClick={handleSubmit}>
             <div className="flex justify-around w-[100%]">
-              <div>Create</div>
+              <div>Update</div>
               <div>
                 {loader ? (
                   <CircularProgress

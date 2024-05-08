@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import FlipCard from "@/components/FlipCard.jsx";
+//import FlipCard from "../../components/FlipCard.jsx";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
-import step1 from "../../../public/images/step1.png";
+//import step1 from "../../../public/images/step1.png";
 import ActionButton from "../ActionButton";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -50,7 +50,7 @@ export default function KanBanCard({
         <CardMedia
           component="img"
           sx={{ height: 200 }}
-          image={`https://api.hubeei.skillzserver.com/public${item.thumbnail}`}
+          image={`${process.env.REACT_APP_DOCUMENTS}${item.thumbnail}`}
         />
         <CardContent
           style={{

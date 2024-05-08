@@ -14,7 +14,7 @@ jobs:
       - checkout
       # install dependencies
       - setup_remote_docker:
-          version: 20.10.12
+          version: 20.10.12 
           docker_layer_caching: true
       - run:
           name: Run npm 
@@ -35,20 +35,68 @@ jobs:
       - run:
           name: ssh login  
           command: |
-            rsync -va -e 'ssh -p 7822 -o StrictHostKeyChecking=no'  --delete   build/ .htaccess skillz@185.160.67.60:hubeei/website
+            rsync -va -e 'ssh -p 7822 -o StrictHostKeyChecking=no'  --delete   build/ .htaccess  skillz@185.160.67.60:hubeei/website
       # - run:
       #     name: ssh and run migration on live server  
       #     command: |
       #       ssh bartumen@192.254.235.94 && cd devapi.bartumenergy.com &&  php artisan migrate && ls && exit
+  deploy-hub-production:
+    
+    docker:
+        - image: circleci/node:16
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys:
+         fingerprints: 
+          - "SHA256:nVegYijG0+BBQ5AgPhOXVxdHEUiit7gE8YMUQfTVsfQ"
+      - checkout
+      # install dependencies
+      - setup_remote_docker:
+          version: 20.10.12 
+          docker_layer_caching: true
+      - run:
+          name: Run npm 
+          command: |
+            npm install 
 
+      - run: CI=false sudo apt update
+      - run: CI=false sudo apt-get install rsync
+
+      - run:
+          name: Update known hosts
+          command: ssh-keyscan -H 94.72.98.194 >> ~/.ssh/known_hosts && cat ~/.ssh/known_hosts
+      
+      - run:
+          name: rename .env.sample file to .env 
+          command: |
+            mv .env.sample .env
+      - run:
+          name: find and replace in document
+          command: |
+            sed -i -e 's:REACT_APP_BACKEND_API="sample":REACT_APP_BACKEND_API="${REACT_APP_BACKEND_API}":g' .env && sed -i -e 's:REACT_APP_DOCUMENTS="sample":REACT_APP_DOCUMENTS="${REACT_APP_DOCUMENTS}":g' .env && sed -i -e 's:REACT_APP_ROUTE="sample":REACT_APP_ROUTE="${REACT_APP_ROUTE}":g' .env 
+
+      - run:
+          name: build file
+          command: |
+            CI=false npm run build
+     
+      - run:
+          name: ssh login  
+          command: |
+            rsync -va -e 'ssh  -o StrictHostKeyChecking=no'   build/ .htaccess hubeei@94.72.98.194:public_html/
+     
 workflows:
   version: 2
-  tibilion_deploy:
+  hubeei_website_deploy:
     jobs:
       - deploy-react: # Use the pre-configured job, deploy-via-git
           filters:
             branches:
               only: staging
+      - deploy-hub-production: # Use the pre-configured job, deploy-via-git
+          filters:
+            branches:
+              only: production
      
       # - deploy-nest: # Use the pre-configured job, deploy-via-git
       #     filters:
