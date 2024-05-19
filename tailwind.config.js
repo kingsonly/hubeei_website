@@ -12,6 +12,9 @@ module.exports = {
         'hero-bg': "url('images/hero-bg.jpg')"
 
       },
+      'fontFamily': {
+        'raleway': "Raleway",
+      },
       'colors':{
         orange: {
           '0': '#DCD427'

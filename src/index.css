@@ -3,6 +3,9 @@
 @tailwind utilities;
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap');
+
+
 
 
 
@@ -30,6 +33,13 @@
   .flexEnd {
     @apply flex items-center justify-end;
   }
+
+  .hero-content {
+    @apply  w-full flex-col justify-center items-center flex pt-[150px] pb-[170px] lg:pb-[215px] lg:pt-[200px] text-orange-0 ;
+  }
+  .hero-title{
+    @apply font-['Raleway'] text-[38px] lg:text-[48px] z-10 tracking-wide font-semibold leading-tight
+   }
 }
 
 @keyframes beacon {
@@ -59,7 +69,7 @@
 }
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Raleway' 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
