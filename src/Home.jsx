@@ -1,11 +1,13 @@
 import React from 'react'
 import Hero from './sections/Hero'
+import Steps from './sections/Steps'
 
 function Home() {
   return (
     <div className=' bg-white'>
     <Hero/>
-    Home
+    <Steps/>
+
     </div>
   )
 }
