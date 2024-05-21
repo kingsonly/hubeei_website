@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import logo from "../../images/logo.jpeg";
+import Button from "../Button/Button";
 
 export default function Navbar() {
     const [isToggleOpen, setIsToggleOpen] = useState(false)
@@ -86,9 +87,7 @@ export default function Navbar() {
 
                         </ul>
                         <div className="ml-auto flex items-center px-6 lg:ml-0 lg:p-0">
-                            <button className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded bg-orange-0 px-5 text-sm font-medium tracking-wide text-black hover:text-white shadow-md shadow-gray-0 transition duration-300 hover:bg-green-0 hover:shadow-sm hover:shadow-gray-0 focus:bg-green-0 focus:shadow-sm focus:shadow-gray-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-yellow-300 disabled:bg-yellow-300 disabled:shadow-none">
-                                <span>Try it free</span>
-                            </button>
+                            <Button title={'Try it free'}/>
                         </div>
                     </nav>
                 </div>
